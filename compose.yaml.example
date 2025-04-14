@@ -1,0 +1,51 @@
+services:
+  postgres:
+    image: postgres:17
+    restart: unless-stopped
+    user: ${PUID}:${PGID}
+    shm_size: 256MB
+    volumes:
+      - ./volumes/postgres_data:/var/lib/postgresql/data
+    environment:
+      - TZ
+      - POSTGRES_DB
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+
+  redis:
+    image: redis:latest
+    restart: unless-stopped
+    user: ${PUID}:${PGID}
+    volumes:
+      - ./volumes/redis_data:/data
+    environment:
+      - TZ
+
+  imaginary:
+    image: ghcr.io/nextcloud-releases/aio-imaginary
+    restart: unless-stopped
+    user: ${PUID}:${PGID}
+    init: true
+    cap_add:
+      - SYS_NICE
+    tmpfs:
+      - /tmp
+
+  app:
+    build: ./app
+    restart: unless-stopped
+    # Uncomment the following to enable dri device (VA-API)
+    # devices:
+    #   - /dev/dri:/dev/dri
+    volumes:
+      - ./volumes/nextcloud_html:/var/www/html
+      - ./volumes/nextcloud_data:/var/www/html/data
+    env_file: .env
+    ports:
+      - 8080:80
+    environment:
+      - REDIS_HOST=redis
+      - POSTGRES_HOST=postgres
+    depends_on:
+      - postgres
+      - redis

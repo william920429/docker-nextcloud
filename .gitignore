@@ -1,0 +1,5 @@
+volumes/
+backup/
+.env
+compose.yaml
+note.txt
