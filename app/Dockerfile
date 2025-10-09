@@ -1,5 +1,16 @@
-FROM nextcloud:31-apache
+# Cache files
+FROM scratch AS filecache
 
+ARG DLIB_VERSION=v20.0
+ARG PDLIB_VERSION=v1.1.0
+ARG PUSH_VERSION=v1.2.0
+
+ADD https://github.com/davisking/dlib.git#${DLIB_VERSION}:dlib /dlib
+ADD https://github.com/goodspb/pdlib.git#${PDLIB_VERSION}      /pdlib
+ADD https://github.com/nextcloud-releases/notify_push/releases/download/${PUSH_VERSION}/notify_push-${PUSH_VERSION}.tar.gz \
+    /notify_push.tar.gz
+
+FROM nextcloud:31-apache
 # Install dependencies
 # intel gpu: intel-media-va-driver-non-free
 # amd gpu and nouveau: mesa-va-drivers
@@ -20,9 +31,8 @@ RUN set -eux; \
     rm -rf /var/lib/apt/lists/*;
 
 # Install DLIB and PDLIB
-ENV DLIB_VERSION=20.0
-ENV PDLIB_VERSION=1.1.0
-RUN set -eux; \
+RUN --mount=from=filecache,source=/,destination=/mnt,rw \
+    set -eux; \
     savedAptMark="$(apt-mark showmanual)"; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
@@ -32,36 +42,24 @@ RUN set -eux; \
         liblapack-dev \
     ; \
     \
-    cd /tmp; \
-    curl -fsSL -o dlib.tar.gz https://github.com/davisking/dlib/archive/refs/tags/v${DLIB_VERSION}.tar.gz; \
-    tar -zxf dlib.tar.gz; \
-    cd dlib-${DLIB_VERSION}/dlib; \
-    mkdir build; \
-    cd build; \
+    mkdir -p /mnt/dlib/build; \
+    cd /mnt/dlib/build; \
     cmake .. -DBUILD_SHARED_LIBS=ON -DUSE_AVX_INSTRUCTIONS=ON; \
     make -j $(nproc); \
     make install; \
     \
-    cd /tmp; \
-    curl -fsSL -o pdlib.tar.gz https://github.com/goodspb/pdlib/archive/refs/tags/v${PDLIB_VERSION}.tar.gz; \
-    tar -zxf pdlib.tar.gz; \
-    cd pdlib-${PDLIB_VERSION}; \
+    cd /mnt/pdlib; \
     phpize; \
     ./configure CXXFLAGS="-O2 -mavx2"; \
     make -j $(nproc); \
     make install; \
     echo "extension=pdlib.so" > /usr/local/etc/php/conf.d/pdlib.ini; \
     \
-    cd /tmp; \
-    cat dlib-${DLIB_VERSION}/dlib/build/install_manifest.txt \
-        | grep -v "/usr/local/lib/libdlib.so" \
+    grep -v "libdlib.so" /mnt/dlib/build/install_manifest.txt \
         | xargs -rt rm -rf; \
     \
-    rm -rf dlib.tar.gz dlib-${DLIB_VERSION}; \
-    rm -rf pdlib.tar.gz pdlib-${PDLIB_VERSION}; \
-    \
     apt-mark auto '.*' > /dev/null; \
-    apt-mark manual $savedAptMark; \
+    apt-mark manual ${savedAptMark}; \
     apt-mark manual libopenblas0-pthread; \
     ldd "$(php -r 'echo ini_get("extension_dir");')"/*.so \
         | awk '/=>/ { so = $(NF-1); if (index(so, "/usr/local/") == 1) { next }; gsub("^/(usr/)?", "", so); print so }' \
@@ -75,32 +73,29 @@ RUN set -eux; \
     rm -rf /var/lib/apt/lists/*;
 
 # Bundle notify_push
-ENV PUSH_VERSION=1.2.0
-RUN set -eux; \
-    cd /tmp; \
-    curl -fsSL -o notify_push.tar.gz https://github.com/nextcloud-releases/notify_push/releases/download/v${PUSH_VERSION}/notify_push-v${PUSH_VERSION}.tar.gz; \
-    tar -zxf notify_push.tar.gz -C /usr/src/nextcloud/custom_apps/; \
-    rm notify_push.tar.gz;
+RUN --mount=from=filecache,source=/,destination=/mnt,rw \
+    tar -zxf /mnt/notify_push.tar.gz -C /usr/src/nextcloud/custom_apps/;
 
 # Alter apache
-RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf ; \
-    a2enmod proxy proxy_http proxy_wstunnel ; \
+RUN set -eux; \
+    echo "ServerName localhost" >> /etc/apache2/apache2.conf; \
+    a2enmod proxy proxy_http proxy_wstunnel; \
     sed -i '/<\/VirtualHost>/i \\n\tProxyPass /push/ws ws://127.0.0.1:7867/ws\n\tProxyPass /push/ http://127.0.0.1:7867/\n\tProxyPassReverse /push/ http://127.0.0.1:7867/' \
         /etc/apache2/sites-available/000-default.conf
 
-# Prepare for supervisord
-RUN mkdir -p \
-        /var/log/supervisord \
-        /var/run/supervisord \
-    ;
+RUN set -eux; \
+    chmod 1777 /var/www/data
 
 COPY config/*config.php /usr/src/nextcloud/config/
 COPY prepare.sh notifypush.sh supervisord.conf /
 
-ENV PUID=1000 PGID=1000
+# www-data is 33 on debian
+ENV PUID=33 PGID=33 
 ENV CRON_NEXTCLOUD="*/5 * * * * php -f /var/www/html/cron.php"
+ENV NEXTCLOUD_DATA_DIR=/var/www/data
 
-ENV NEXTCLOUD_UPDATE=1
+VOLUME [ "/var/www/data" ]
+
 STOPSIGNAL SIGTERM
 ENTRYPOINT ["/prepare.sh", "/entrypoint.sh"]
 CMD ["/usr/bin/supervisord", "-c", "/supervisord.conf"]
