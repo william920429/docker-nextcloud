@@ -1,4 +1,4 @@
-FROM nextcloud:30-apache
+FROM nextcloud:31-apache
 
 # Install dependencies
 # intel gpu: intel-media-va-driver-non-free
@@ -20,7 +20,7 @@ RUN set -eux; \
     rm -rf /var/lib/apt/lists/*;
 
 # Install DLIB and PDLIB
-ENV DLIB_VERSION=19.24.8
+ENV DLIB_VERSION=20.0
 ENV PDLIB_VERSION=1.1.0
 RUN set -eux; \
     savedAptMark="$(apt-mark showmanual)"; \
@@ -38,7 +38,7 @@ RUN set -eux; \
     cd dlib-${DLIB_VERSION}/dlib; \
     mkdir build; \
     cd build; \
-    cmake -DBUILD_SHARED_LIBS=ON ..; \
+    cmake .. -DBUILD_SHARED_LIBS=ON -DUSE_AVX_INSTRUCTIONS=ON; \
     make -j $(nproc); \
     make install; \
     \
@@ -75,7 +75,7 @@ RUN set -eux; \
     rm -rf /var/lib/apt/lists/*;
 
 # Bundle notify_push
-ENV PUSH_VERSION=1.0.0
+ENV PUSH_VERSION=1.2.0
 RUN set -eux; \
     cd /tmp; \
     curl -fsSL -o notify_push.tar.gz https://github.com/nextcloud-releases/notify_push/releases/download/v${PUSH_VERSION}/notify_push-v${PUSH_VERSION}.tar.gz; \
