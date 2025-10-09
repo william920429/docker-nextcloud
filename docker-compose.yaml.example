@@ -26,8 +26,6 @@ services:
     restart: unless-stopped
     user: ${PUID}:${PGID}
     init: true
-    cap_add:
-      - SYS_NICE
     tmpfs:
       - /tmp
 
