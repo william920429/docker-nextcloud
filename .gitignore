@@ -1,6 +1,6 @@
-volumes/
-backup/
-.env
-compose.yaml
-docker-compose.yaml
-note.txt
+/volumes/
+/backup/
+/.env
+/docker-compose.yaml
+/note.txt
+/config.php

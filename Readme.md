@@ -6,10 +6,10 @@
  - pdlib with AVX2 enabled installed (for [facerecognition](https://github.com/matiasdelellis/facerecognition))
 
 ## Versions
- - nextcloud: 30
- - dlib: 19.24.8
+ - nextcloud: 31
+ - dlib: 20.0
  - pdlib: 1.1.0
- - notify_push: 1.0.0
+ - notify_push: 1.2.0
 
 ## How to install
 ### Build image
