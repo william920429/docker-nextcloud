@@ -30,7 +30,7 @@ services:
       - /tmp
 
   app:
-    build: ./app
+    build: ./image
     restart: unless-stopped
     # Uncomment the following to enable dri device (VA-API)
     # devices:

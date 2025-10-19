@@ -86,7 +86,7 @@ RUN set -eux; \
 RUN set -eux; \
     chmod 1777 /var/www/data
 
-COPY config/*config.php /usr/src/nextcloud/config/
+COPY custom.config.php /usr/src/nextcloud/config/
 COPY prepare.sh notifypush.sh supervisord.conf /
 
 # www-data is 33 on debian
