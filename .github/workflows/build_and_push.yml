@@ -10,10 +10,10 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.actor }}/nextcloud
-  NEXTCLOUD_MAJOR: 31
-  DLIB_VERSION: 20.0
-  PDLIB_VERSION: 1.1.0
-  PUSH_VERSION: 1.2.0
+  NEXTCLOUD_MAJOR: "31"
+  DLIB_VERSION: "20.0"
+  PDLIB_VERSION: "1.1.0"
+  PUSH_VERSION: "1.2.0"
 
 jobs:
   image-build:
