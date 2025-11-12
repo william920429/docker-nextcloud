@@ -12,16 +12,12 @@
  - notify_push: 1.2.0
 
 ## How to install
-### Build image
+### Copy example files
 ```shell
-git clone https://github.com/william920429/docker-nextcloud
-cp compose.yaml.example compose.yaml
-docker-compose build app
+cp ./example/.env ./
+cp ./example/docker-compose.yml ./
 ```
 ### Configure environment variable
-1. `cp .env.example .env`
-2. change the following environment variables
-
  - `TZ` Timezone
  - `PUID` uid to run in container
  - `PGID` gid to run in container
@@ -32,23 +28,25 @@ docker-compose build app
 For other environment variables, please refer to [nextcloud/docker](https://github.com/nextcloud/docker).
 
 Hint: you can generate password by 
- `tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 32`
+```shell
+openssl rand -base64 24
+```
 
-### Configure compose.yaml
-```yaml
+### Configure docker-compose.yml
+```yml
 app:
   restart: unless-stopped
-  # Uncomment the following to enable dri device (VA-API)
+  # Uncomment to enable dri device (VA-API)
   # devices:
   #   - /dev/dri:/dev/dri
+  volumes:
+    - html:/var/www/html
+    - data:/var/www/data
+    # - /somewhere/my/data/store:/var/www/data
+    
 ```
 
 ### Run
 ```shell
-mkdir -p --mode 777 \
-    volumes/nextcloud_data \
-    volumes/nextcloud_html \
-    volumes/postgres_data \
-    volumes/redis_data
-docker-compose up -d
+docker compose up -d
 ```
