@@ -1,16 +1,5 @@
-# Cache files
-FROM scratch AS filecache
-
-ARG DLIB_VERSION=v20.0
-ARG PDLIB_VERSION=v1.1.0
-ARG PUSH_VERSION=v1.2.0
-
-ADD https://github.com/davisking/dlib.git#${DLIB_VERSION}:dlib /dlib
-ADD https://github.com/goodspb/pdlib.git#${PDLIB_VERSION}      /pdlib
-ADD https://github.com/nextcloud-releases/notify_push/releases/download/${PUSH_VERSION}/notify_push-${PUSH_VERSION}.tar.gz \
-    /notify_push.tar.gz
-
-FROM nextcloud:31-apache
+ARG NEXTCLOUD_MAJOR
+FROM nextcloud:${NEXTCLOUD_MAJOR}-apache
 # Install dependencies
 # intel gpu: intel-media-va-driver-non-free
 # amd gpu and nouveau: mesa-va-drivers
@@ -31,8 +20,9 @@ RUN set -eux; \
     rm -rf /var/lib/apt/lists/*;
 
 # Install DLIB and PDLIB
-RUN --mount=from=filecache,source=/,destination=/mnt,rw \
-    set -eux; \
+ARG DLIB_VERSION
+ARG PDLIB_VERSION
+RUN set -eux; \
     savedAptMark="$(apt-mark showmanual)"; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
@@ -42,21 +32,33 @@ RUN --mount=from=filecache,source=/,destination=/mnt,rw \
         liblapack-dev \
     ; \
     \
-    mkdir -p /mnt/dlib/build; \
-    cd /mnt/dlib/build; \
+    cd /tmp; \
+    curl -fsSL -o dlib.tar.gz https://github.com/davisking/dlib/archive/refs/tags/v${DLIB_VERSION}.tar.gz; \
+    tar -zxf dlib.tar.gz; \
+    cd dlib-${DLIB_VERSION}/dlib; \
+    mkdir build; \
+    cd build; \
     cmake .. -DBUILD_SHARED_LIBS=ON -DUSE_AVX_INSTRUCTIONS=ON; \
     make -j $(nproc); \
     make install; \
     \
-    cd /mnt/pdlib; \
+    cd /tmp; \
+    curl -fsSL -o pdlib.tar.gz https://github.com/goodspb/pdlib/archive/refs/tags/v${PDLIB_VERSION}.tar.gz; \
+    tar -zxf pdlib.tar.gz; \
+    cd pdlib-${PDLIB_VERSION}; \
     phpize; \
     ./configure CXXFLAGS="-O2 -mavx2"; \
     make -j $(nproc); \
     make install; \
     echo "extension=pdlib.so" > /usr/local/etc/php/conf.d/pdlib.ini; \
     \
-    grep -v "libdlib.so" /mnt/dlib/build/install_manifest.txt \
+    cd /tmp; \
+    cat dlib-${DLIB_VERSION}/dlib/build/install_manifest.txt \
+        | grep -v "/usr/local/lib/libdlib.so" \
         | xargs -rt rm -rf; \
+    \
+    rm -rf dlib.tar.gz dlib-${DLIB_VERSION}; \
+    rm -rf pdlib.tar.gz pdlib-${PDLIB_VERSION}; \
     \
     apt-mark auto '.*' > /dev/null; \
     apt-mark manual ${savedAptMark}; \
@@ -73,8 +75,12 @@ RUN --mount=from=filecache,source=/,destination=/mnt,rw \
     rm -rf /var/lib/apt/lists/*;
 
 # Bundle notify_push
-RUN --mount=from=filecache,source=/,destination=/mnt,rw \
-    tar -zxf /mnt/notify_push.tar.gz -C /usr/src/nextcloud/custom_apps/;
+ARG PUSH_VERSION
+RUN set -eux; \
+    cd /tmp; \
+    curl -fsSL -o notify_push.tar.gz https://github.com/nextcloud-releases/notify_push/releases/download/v${PUSH_VERSION}/notify_push-v${PUSH_VERSION}.tar.gz; \
+    tar -zxf notify_push.tar.gz -C /usr/src/nextcloud/custom_apps/; \
+    rm notify_push.tar.gz;
 
 # Alter apache
 RUN set -eux; \
