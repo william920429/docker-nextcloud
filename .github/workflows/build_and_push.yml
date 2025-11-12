@@ -22,6 +22,10 @@ jobs:
       contents: read
       packages: write
     steps:
+      - name: Get current date
+        id: date
+        run: echo "date=$(date +'%Y%m%d')" >> $GITHUB_OUTPUT
+
       - name: Checkout
         uses: actions/checkout@v5
 
@@ -46,6 +50,7 @@ jobs:
           context: ./image
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.NEXTCLOUD_MAJOR }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.NEXTCLOUD_MAJOR }}-${{ steps.date.outputs.date }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
           build-args: |
             NEXTCLOUD_MAJOR=${{ env.NEXTCLOUD_MAJOR }}
