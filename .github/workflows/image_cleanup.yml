@@ -1,0 +1,22 @@
+name: GHCR Cleanup
+
+on:
+  schedule:
+    - cron: "18 19 * * 2,6"
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    steps:
+      - name: Delete old GHCR images
+        uses: quartx-analytics/ghcr-cleaner@v1
+        with:
+          owner-type: user # or user
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repository_owner: ${{ github.repository_owner }}
+          package-name: nextcloud # Optional: specify a particular package
+          delete-untagged: true # Delete truly untagged images
+          keep-at-most: 5 # Keep the 5 most recent tagged images
