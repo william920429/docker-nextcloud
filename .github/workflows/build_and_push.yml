@@ -1,9 +1,11 @@
-name: Build image
+name: Build Image
 
 on:
   push:
     branches:
       - master
+    paths:
+      - "image/**"
   schedule:
     - cron: "18 18 * * 2,6"
 
