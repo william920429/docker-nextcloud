@@ -1,4 +1,4 @@
-name: GHCR Cleanup
+name: Ghcr.io Cleanup
 
 on:
   schedule:
@@ -11,12 +11,10 @@ jobs:
     permissions:
       packages: write
     steps:
-      - name: Delete old GHCR images
-        uses: quartx-analytics/ghcr-cleaner@v1
+      - name: clean nextcloud image
+        uses: dataaxiom/ghcr-cleanup-action@v1
         with:
-          owner-type: user # or user
           token: ${{ secrets.GITHUB_TOKEN }}
-          repository_owner: ${{ github.repository_owner }}
-          package-name: nextcloud # Optional: specify a particular package
-          delete-untagged: true # Delete truly untagged images
-          keep-at-most: 5 # Keep the 5 most recent tagged images
+          package: nextcloud
+          delete-untagged: true
+          keep-n-tagged: 5
