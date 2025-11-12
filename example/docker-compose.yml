@@ -12,6 +12,10 @@ services:
       - POSTGRES_DB
       - POSTGRES_USER
       - POSTGRES_PASSWORD
+    healthcheck:
+      test: ["CMD", "pg_isready", "-d", "${POSTGRES_DB}", "-U", "${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 3s
 
   redis:
     image: redis:latest
@@ -21,14 +25,16 @@ services:
       - redis:/data
     environment:
       - TZ
+    healthcheck:
+      test: ["CMD", "redis-cli", "PING"]
+      interval: 10s
+      timeout: 3s
 
   imaginary:
     image: ghcr.io/nextcloud-releases/aio-imaginary:latest
     container_name: nextcloud-imaginary
     restart: unless-stopped
     init: true
-    healthcheck:
-      test: ["NONE"]
     tmpfs:
       - /tmp
 
