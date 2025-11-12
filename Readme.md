@@ -1,9 +1,10 @@
-# docker-nextcloud
+# Docker Nextcloud
 ## Features
  - use `$PUID` `$PGID` to change uid gid
  - [notify_push](https://github.com/nextcloud/notify_push) bundled and auto-configured
  - ffmpeg and VA-API driver installed (for [memories](https://github.com/pulsejet/memories))
  - pdlib with AVX2 enabled installed (for [facerecognition](https://github.com/matiasdelellis/facerecognition))
+ - custom cron
 
 ## Versions
  - nextcloud: 31
@@ -24,6 +25,7 @@ cp ./example/docker-compose.yml ./
  - `POSTGRES_PASSWORD` postgresql password
  - `NEXTCLOUD_ADMIN_PASSWORD` initial  nextcloud password
  - `OVERWRITEHOST` your host name
+ - `CRON_*` cron action e.g. `CRON_NEXTCLOUD="*/5 * * * * php -f /var/www/html/cron.php"` (this is already included in image)
 
 For other environment variables, please refer to [nextcloud/docker](https://github.com/nextcloud/docker).
 
