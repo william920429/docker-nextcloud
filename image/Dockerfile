@@ -1,4 +1,4 @@
-ARG NEXTCLOUD_MAJOR
+ARG NEXTCLOUD_MAJOR=stable
 FROM nextcloud:${NEXTCLOUD_MAJOR}-apache
 # Install dependencies
 # intel gpu: intel-media-va-driver-non-free
