@@ -20,6 +20,8 @@ RUN set -eux; \
     rm -rf /var/lib/apt/lists/*;
 
 # Install DLIB and PDLIB
+# https://github.com/davisking/dlib
+# https://github.com/goodspb/pdlib
 ARG DLIB_VERSION
 ARG PDLIB_VERSION
 RUN set -eux; \
@@ -75,12 +77,25 @@ RUN set -eux; \
     rm -rf /var/lib/apt/lists/*;
 
 # Bundle notify_push
+# https://github.com/nextcloud-releases/notify_push/releases
 ARG PUSH_VERSION
 RUN set -eux; \
     cd /tmp; \
     curl -fsSL -o notify_push.tar.gz https://github.com/nextcloud-releases/notify_push/releases/download/v${PUSH_VERSION}/notify_push-v${PUSH_VERSION}.tar.gz; \
     tar -zxf notify_push.tar.gz -C /usr/src/nextcloud/custom_apps/; \
     rm notify_push.tar.gz;
+
+# Install supercronic
+# Latest releases available at https://github.com/aptible/supercronic/releases
+ENV SUPERCRONIC_URL=https://github.com/aptible/supercronic/releases/download/v0.2.39/supercronic-linux-amd64 \
+    SUPERCRONIC_SHA1SUM=c98bbf82c5f648aaac8708c182cc83046fe48423 \
+    SUPERCRONIC=supercronic-linux-amd64
+RUN set -eux; \
+    curl -fsSLO "$SUPERCRONIC_URL"; \
+    echo "${SUPERCRONIC_SHA1SUM}  ${SUPERCRONIC}" | sha1sum -c -; \
+    chmod +x "$SUPERCRONIC"; \
+    mv "$SUPERCRONIC" "/usr/local/bin/${SUPERCRONIC}"; \
+    ln -s "/usr/local/bin/${SUPERCRONIC}" /usr/local/bin/supercronic;
 
 # Alter apache
 RUN set -eux; \
