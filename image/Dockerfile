@@ -89,9 +89,6 @@ RUN set -eux; \
     sed -i '/<\/VirtualHost>/i \\n\tProxyPass /push/ws ws://127.0.0.1:7867/ws\n\tProxyPass /push/ http://127.0.0.1:7867/\n\tProxyPassReverse /push/ http://127.0.0.1:7867/' \
         /etc/apache2/sites-available/000-default.conf
 
-RUN set -eux; \
-    chmod 1777 /var/www/data
-
 COPY custom.config.php /usr/src/nextcloud/config/
 COPY --chmod=755 prepare.sh notifypush.sh /
 COPY supervisord.conf /
@@ -99,9 +96,6 @@ COPY supervisord.conf /
 # www-data is 33 on debian
 ENV PUID=33 PGID=33 
 ENV CRON_NEXTCLOUD="*/5 * * * * php -f /var/www/html/cron.php"
-ENV NEXTCLOUD_DATA_DIR=/var/www/data
-
-VOLUME [ "/var/www/data" ]
 
 STOPSIGNAL SIGTERM
 ENTRYPOINT ["/prepare.sh", "/entrypoint.sh"]

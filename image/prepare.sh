@@ -37,9 +37,9 @@ if [[ "$2" == "/usr/bin/supervisord" ]] && [[ "$EUID" -eq "0" ]]; then
     if [[ "$(stat -c '%u:%g' /var/www/html)" != "${PUID}:${PGID}" ]]; then
         chown -R "${PUID}:${PGID}" /var/www/html
     fi
-    echo "Checking permissions for /var/www/data..."
-    if [[ "$(stat -c '%u:%g' /var/www/data)" != "${PUID}:${PGID}" ]]; then
-        chown -R "${PUID}:${PGID}" /var/www/data
+    echo "Checking permissions for /var/www/html/data..."
+    if [[ "$(stat -c '%u:%g' /var/www/html/data)" != "${PUID}:${PGID}" ]]; then
+        chown -R "${PUID}:${PGID}" /var/www/html/data
     fi
 
     echo "All things prepared."
