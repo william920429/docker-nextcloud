@@ -93,7 +93,8 @@ RUN set -eux; \
     chmod 1777 /var/www/data
 
 COPY custom.config.php /usr/src/nextcloud/config/
-COPY prepare.sh notifypush.sh supervisord.conf /
+COPY --chmod=755 prepare.sh notifypush.sh /
+COPY supervisord.conf /
 
 # www-data is 33 on debian
 ENV PUID=33 PGID=33 

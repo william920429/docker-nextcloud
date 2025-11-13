@@ -1,4 +1,4 @@
-name: Build Image
+name: Build Push Cleanup
 
 on:
   push:
@@ -59,3 +59,17 @@ jobs:
             DLIB_VERSION=${{ env.DLIB_VERSION }}
             PDLIB_VERSION=${{ env.PDLIB_VERSION }}
             PUSH_VERSION=${{ env.PUSH_VERSION }}
+
+  cleanup:
+    needs: image-build
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    steps:
+      - name: clean nextcloud image
+        uses: dataaxiom/ghcr-cleanup-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          package: nextcloud
+          delete-untagged: true
+          keep-n-tagged: 5
