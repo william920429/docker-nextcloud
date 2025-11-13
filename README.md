@@ -43,8 +43,7 @@ app:
   #   - /dev/dri:/dev/dri
   volumes:
     - html:/var/www/html
-    - data:/var/www/data
-    # - /somewhere/my/data/store:/var/www/data
+    # - /somewhere/my/data/store:/var/www/html/data
     
 ```
 
