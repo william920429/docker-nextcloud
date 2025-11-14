@@ -18,6 +18,7 @@ $CONFIG = array (
   'activity_expire_days' => 30,
 
   'preview_imaginary_url' => 'http://imaginary:9000',
+  'allow_local_remote_servers' => true,
   'enable_previews' => 'true',
   'jpeg_quality' => 60,
   'preview_max_x' => 2048,
