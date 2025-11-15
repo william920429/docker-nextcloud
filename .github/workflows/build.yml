@@ -6,12 +6,13 @@ on:
       - master
     paths:
       - "image/**"
+      - ".github/workflows/**"
   schedule:
     - cron: "18 18 * * 2,6"
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.actor }}/nextcloud
+  IMAGE_NAME: nextcloud
   NEXTCLOUD_MAJOR: "31"
   DLIB_VERSION: "20.0"
   PDLIB_VERSION: "1.1.0"
@@ -50,9 +51,9 @@ jobs:
           cache-to: type=gha,mode=max
           context: ./image
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.NEXTCLOUD_MAJOR }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.NEXTCLOUD_MAJOR }}-${{ steps.date.outputs.date }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+            ${{ env.REGISTRY }}/${{ github.actor }}/${{ env.IMAGE_NAME }}:${{ env.NEXTCLOUD_MAJOR }}
+            ${{ env.REGISTRY }}/${{ github.actor }}/${{ env.IMAGE_NAME }}:${{ env.NEXTCLOUD_MAJOR }}-${{ steps.date.outputs.date }}
+            ${{ env.REGISTRY }}/${{ github.actor }}/${{ env.IMAGE_NAME }}:latest
           build-args: |
             NEXTCLOUD_MAJOR=${{ env.NEXTCLOUD_MAJOR }}
             DLIB_VERSION=${{ env.DLIB_VERSION }}
@@ -65,10 +66,10 @@ jobs:
     permissions:
       packages: write
     steps:
-      - name: clean nextcloud image
+      - name: clean ${{ env.IMAGE_NAME }} image
         uses: dataaxiom/ghcr-cleanup-action@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          package: nextcloud
+          package: ${{ env.IMAGE_NAME }}
           delete-untagged: true
           keep-n-tagged: 5
