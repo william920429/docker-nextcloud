@@ -76,15 +76,6 @@ RUN set -eux; \
     apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false; \
     rm -rf /var/lib/apt/lists/*;
 
-# Bundle notify_push
-# https://github.com/nextcloud-releases/notify_push/releases
-ARG PUSH_VERSION
-RUN set -eux; \
-    cd /tmp; \
-    curl -fsSL -o notify_push.tar.gz https://github.com/nextcloud-releases/notify_push/releases/download/v${PUSH_VERSION}/notify_push-v${PUSH_VERSION}.tar.gz; \
-    tar -zxf notify_push.tar.gz -C /usr/src/nextcloud/custom_apps/; \
-    rm notify_push.tar.gz;
-
 # Install supercronic
 # Latest releases available at https://github.com/aptible/supercronic/releases
 ENV SUPERCRONIC_URL=https://github.com/aptible/supercronic/releases/download/v0.2.39/supercronic-linux-amd64 \
@@ -107,6 +98,7 @@ RUN set -eux; \
 COPY custom.config.php /usr/src/nextcloud/config/
 COPY --chmod=755 prepare.sh notifypush.sh /
 COPY supervisord.conf /
+COPY --chmod=755 notifypush-install.sh /docker-entrypoint-hooks.d/before-starting/
 
 # www-data is 33 on debian
 ENV PUID=33 PGID=33 
