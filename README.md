@@ -3,7 +3,6 @@
  - use `$PUID` `$PGID` to change uid gid
  - [notify_push](https://github.com/nextcloud/notify_push) auto install and configured
  - ffmpeg and VA-API driver installed (for [memories](https://github.com/pulsejet/memories))
- - custom cron
 
 ## Versions
  - nextcloud: 32
@@ -22,7 +21,6 @@ cp ./example/docker-compose.yml ./
  - `POSTGRES_PASSWORD` postgresql password
  - `NEXTCLOUD_ADMIN_PASSWORD` initial  nextcloud password
  - `OVERWRITEHOST` your host name
- - `CRON_*` cron action e.g. `CRON_NEXTCLOUD="*/5 * * * * php -f /var/www/html/cron.php"` (this is already included in image)
 
 For other environment variables, please refer to [nextcloud/docker](https://github.com/nextcloud/docker).
 

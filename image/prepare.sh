@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -eu
 
-if [ "$2" == "/usr/bin/supervisord" ] && [ "$EUID" -eq "0" ]; then
+if [ "$1" == "/usr/bin/supervisord" ] && [ "$EUID" -eq "0" ]; then
     # Run /entrypoint.sh logic
     export NEXTCLOUD_UPDATE=1
 
@@ -15,34 +15,16 @@ if [ "$2" == "/usr/bin/supervisord" ] && [ "$EUID" -eq "0" ]; then
         touch "/dev-dri-group-was-added"
     fi
 
-    # Setup cron
-    # CRON_NEXTCLOUD="*/5 * * * * php -f /var/www/html/cron.php"
-    # is already included in Dockerfile.
-    if [ ! -f "/cron-was-added" ]; then
-        {
-            for var in "${!CRON_@}"; do
-                declare -n ref=$var
-                echo "$ref"
-            done
-        } > /var/spool/cron/crontabs/www-data
-        touch "/cron-was-added"
-    fi
-
     # Change www-data:www-data to ${PUID}:${PGID}
-    [ "$(id -u www-data)" -ne "${PUID}" ] && usermod  -u "${PUID}" www-data
-    [ "$(id -g www-data)" -ne "${PGID}" ] && groupmod -g "${PGID}" www-data
+    [ "$(id -u www-data)" -ne "${PUID}" ] && usermod  -o -u "${PUID}" www-data
+    [ "$(id -g www-data)" -ne "${PGID}" ] && groupmod -o -g "${PGID}" www-data
     echo "This container will run with PUID=${PUID}, PGID=${PGID}"
 
-    echo "Checking permissions for /var/www/html..."
-    if [ "$(stat -c '%u:%g' /var/www/html)" != "${PUID}:${PGID}" ]; then
-        chown -R "${PUID}:${PGID}" /var/www/html
-    fi
-    echo "Checking permissions for /var/www/html/data..."
-    if [ -d "/var/www/html/data" ] && [ "$(stat -c '%u:%g' /var/www/html/data)" != "${PUID}:${PGID}" ]; then
-        chown -R "${PUID}:${PGID}" /var/www/html/data
-    fi
-
+    for dir in /var/www/html /var/www/log /var/www/cache; do
+        echo "Checking permissions for ${dir}..."
+        find "${dir}" ! -user www-data -exec chown www-data:www-data {} \;
+    done
     echo "All things prepared."
 fi
 
-exec "$@"
+exec /entrypoint.sh "$@"

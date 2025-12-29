@@ -28,12 +28,20 @@ RUN curl -fsSLO "$SUPERCRONIC_URL" \
  && mv "$SUPERCRONIC" "/usr/local/bin/${SUPERCRONIC}" \
  && ln -s "/usr/local/bin/${SUPERCRONIC}" /usr/local/bin/supercronic
 
-# Alter apache
+# Setup apache
 RUN set -eux; \
     echo "ServerName localhost" >> /etc/apache2/apache2.conf; \
     a2enmod proxy proxy_http proxy_wstunnel; \
     sed -i '/<\/VirtualHost>/i \\n\tProxyPass /push/ws ws://127.0.0.1:7867/ws\n\tProxyPass /push/ http://127.0.0.1:7867/\n\tProxyPassReverse /push/ http://127.0.0.1:7867/' \
         /etc/apache2/sites-available/000-default.conf
+
+# Setup dir
+RUN set -eux; \
+    mkdir -p --mode 1777 /var/www/log /var/www/cache; \
+    chown www-data:www-data /var/www/log /var/www/cache;
+
+ENV APACHE_PID_FILE=/tmp/apache2.pid
+ENV XDG_CACHE_HOME=/var/www/cache
 
 COPY custom.config.php /usr/src/nextcloud/config/
 COPY --chmod=755 prepare.sh notifypush.sh /
@@ -42,8 +50,7 @@ COPY --chmod=755 notifypush-install.sh /docker-entrypoint-hooks.d/before-startin
 
 # www-data is 33 on debian
 ENV PUID=33 PGID=33 
-ENV CRON_NEXTCLOUD="*/5 * * * * php -f /var/www/html/cron.php"
 
 STOPSIGNAL SIGTERM
-ENTRYPOINT ["/prepare.sh", "/entrypoint.sh"]
+ENTRYPOINT ["/prepare.sh"]
 CMD ["/usr/bin/supervisord", "-c", "/supervisord.conf"]

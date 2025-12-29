@@ -8,10 +8,10 @@ $CONFIG = array (
   'default_timezone' => 'Asia/Taipei',
 
   'logtimezone' => 'Asia/Taipei',
-  'logfile' => '/var/tmp/nextcloud.log',
+  'logfile' => '/var/www/log/nextcloud.log',
   'log_rotate_size' => 10 * 1024 * 1024,
-  'logfile_audit' => '/var/tmp/audit.log',
-  'cache_path' => '/var/tmp/nextcloud',
+  'logfile_audit' => '/var/www/log/audit.log',
+  'cache_path' => '/var/www/cache/nextcloud',
   'skeletondirectory' => '',
   'trashbin_retention_obligation' => 'auto, 30',
   'versions_retention_obligation' => 'auto, 30',
