@@ -51,7 +51,7 @@ services:
       - cache:/var/www/cache
       # - /somewhere/my/data/store:/var/www/html/data
     tmpfs:
-      - /tmp
+      - /tmp:exec
     env_file: .env
     ports:
       - 8080:80
