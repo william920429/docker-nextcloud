@@ -12,81 +12,21 @@ RUN set -eux; \
         intel-media-va-driver-non-free \
         mesa-va-drivers \
         ffmpeg \
-        libbz2-dev \
         supervisor \
     ; \
-    docker-php-ext-install bz2; \
-    apt-get remove -y --autoremove libbz2-dev; \
-    rm -rf /var/lib/apt/lists/*;
-
-# Install DLIB and PDLIB
-# https://github.com/davisking/dlib
-# https://github.com/goodspb/pdlib
-ARG DLIB_VERSION
-ARG PDLIB_VERSION
-RUN set -eux; \
-    savedAptMark="$(apt-mark showmanual)"; \
-    apt-get update; \
-    apt-get install -y --no-install-recommends \
-        cmake \
-        libx11-dev \
-        libopenblas-dev \
-        liblapack-dev \
-    ; \
-    \
-    cd /tmp; \
-    curl -fsSL -o dlib.tar.gz https://github.com/davisking/dlib/archive/refs/tags/v${DLIB_VERSION}.tar.gz; \
-    tar -zxf dlib.tar.gz; \
-    cd dlib-${DLIB_VERSION}/dlib; \
-    mkdir build; \
-    cd build; \
-    cmake .. -DBUILD_SHARED_LIBS=ON -DUSE_AVX_INSTRUCTIONS=ON; \
-    make -j $(nproc); \
-    make install; \
-    \
-    cd /tmp; \
-    curl -fsSL -o pdlib.tar.gz https://github.com/goodspb/pdlib/archive/refs/tags/v${PDLIB_VERSION}.tar.gz; \
-    tar -zxf pdlib.tar.gz; \
-    cd pdlib-${PDLIB_VERSION}; \
-    phpize; \
-    ./configure CXXFLAGS="-O2 -mavx2"; \
-    make -j $(nproc); \
-    make install; \
-    echo "extension=pdlib.so" > /usr/local/etc/php/conf.d/pdlib.ini; \
-    \
-    cd /tmp; \
-    cat dlib-${DLIB_VERSION}/dlib/build/install_manifest.txt \
-        | grep -v "/usr/local/lib/libdlib.so" \
-        | xargs -rt rm -rf; \
-    \
-    rm -rf dlib.tar.gz dlib-${DLIB_VERSION}; \
-    rm -rf pdlib.tar.gz pdlib-${PDLIB_VERSION}; \
-    \
-    apt-mark auto '.*' > /dev/null; \
-    apt-mark manual ${savedAptMark}; \
-    apt-mark manual libopenblas0-pthread; \
-    ldd "$(php -r 'echo ini_get("extension_dir");')"/*.so \
-        | awk '/=>/ { so = $(NF-1); if (index(so, "/usr/local/") == 1) { next }; gsub("^/(usr/)?", "", so); print so }' \
-        | sort -u \
-        | xargs -r dpkg-query --search \
-        | cut -d: -f1 \
-        | sort -u \
-        | xargs -rt apt-mark manual; \
-    \
-    apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false; \
     rm -rf /var/lib/apt/lists/*;
 
 # Install supercronic
 # Latest releases available at https://github.com/aptible/supercronic/releases
-ENV SUPERCRONIC_URL=https://github.com/aptible/supercronic/releases/download/v0.2.39/supercronic-linux-amd64 \
-    SUPERCRONIC_SHA1SUM=c98bbf82c5f648aaac8708c182cc83046fe48423 \
+ENV SUPERCRONIC_URL=https://github.com/aptible/supercronic/releases/download/v0.2.41/supercronic-linux-amd64 \
+    SUPERCRONIC_SHA1SUM=f70ad28d0d739a96dc9e2087ae370c257e79b8d7 \
     SUPERCRONIC=supercronic-linux-amd64
-RUN set -eux; \
-    curl -fsSLO "$SUPERCRONIC_URL"; \
-    echo "${SUPERCRONIC_SHA1SUM}  ${SUPERCRONIC}" | sha1sum -c -; \
-    chmod +x "$SUPERCRONIC"; \
-    mv "$SUPERCRONIC" "/usr/local/bin/${SUPERCRONIC}"; \
-    ln -s "/usr/local/bin/${SUPERCRONIC}" /usr/local/bin/supercronic;
+
+RUN curl -fsSLO "$SUPERCRONIC_URL" \
+ && echo "${SUPERCRONIC_SHA1SUM}  ${SUPERCRONIC}" | sha1sum -c - \
+ && chmod +x "$SUPERCRONIC" \
+ && mv "$SUPERCRONIC" "/usr/local/bin/${SUPERCRONIC}" \
+ && ln -s "/usr/local/bin/${SUPERCRONIC}" /usr/local/bin/supercronic
 
 # Alter apache
 RUN set -eux; \

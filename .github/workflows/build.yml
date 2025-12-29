@@ -6,16 +6,14 @@ on:
       - master
     paths:
       - "image/**"
-      - ".github/workflows/**"
+      - ".github/workflows/build.yml"
   schedule:
     - cron: "18 18 * * 2,6"
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: nextcloud
-  NEXTCLOUD_MAJOR: "31"
-  DLIB_VERSION: "20.0"
-  PDLIB_VERSION: "1.1.0"
+  NEXTCLOUD_MAJOR: "32"
 
 jobs:
   image-build:
@@ -56,9 +54,6 @@ jobs:
             ${{ env.REGISTRY }}/${{ github.actor }}/${{ env.IMAGE_NAME }}:latest
           build-args: |
             NEXTCLOUD_MAJOR=${{ env.NEXTCLOUD_MAJOR }}
-            DLIB_VERSION=${{ env.DLIB_VERSION }}
-            PDLIB_VERSION=${{ env.PDLIB_VERSION }}
-            PUSH_VERSION=${{ env.PUSH_VERSION }}
 
   cleanup:
     needs: image-build
