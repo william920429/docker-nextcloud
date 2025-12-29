@@ -22,7 +22,8 @@ if [ "$1" == "/usr/bin/supervisord" ] && [ "$EUID" -eq "0" ]; then
 
     for dir in /var/www/html /var/www/log /var/www/cache; do
         echo "Checking permissions for ${dir}..."
-        find "${dir}" ! -user www-data -exec chown www-data:www-data {} \;
+        find "${dir}" ! -user www-data -or ! -group www-data \
+            -exec chown www-data:www-data {} \;
     done
     echo "All things prepared."
 fi
