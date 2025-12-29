@@ -3,13 +3,11 @@
  - use `$PUID` `$PGID` to change uid gid
  - [notify_push](https://github.com/nextcloud/notify_push) auto install and configured
  - ffmpeg and VA-API driver installed (for [memories](https://github.com/pulsejet/memories))
- - pdlib with AVX2 enabled installed (for [facerecognition](https://github.com/matiasdelellis/facerecognition))
  - custom cron
 
 ## Versions
- - nextcloud: 31
- - dlib: 20.0
- - pdlib: 1.1.0
+ - nextcloud: 32
+ - supercronic: 0.2.41
 
 ## How to install
 ### Copy example files
