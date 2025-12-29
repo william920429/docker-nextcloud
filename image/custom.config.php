@@ -18,6 +18,8 @@ $CONFIG = array (
   'activity_expire_days' => 30,
 
   'preview_imaginary_url' => 'http://imaginary:9000',
+  'preview_ffmpeg_path' => '/usr/bin/ffmpeg',
+  'preview_ffprobe_path' => '/usr/bin/ffprobe',
   'allow_local_remote_servers' => true,
   'enable_previews' => 'true',
   'jpeg_quality' => 60,
@@ -25,12 +27,13 @@ $CONFIG = array (
   'preview_max_y' => 2048,
   'preview_max_memory' => 1024,
   'preview_max_filesize_image' => 50,
-  'enabledPreviewProviders' => 
+  'enabledPreviewProviders' =>
   array (
     0 => 'OC\\Preview\\Imaginary',
+    1 => 'OC\\Preview\\Movie',
   ),
 
-  'check_for_working_htaccess' => false,
+  'check_for_working_htaccess' => true,
   'maintenance_window_start' => 20,
   'files.chunked_upload.max_size' => 1073741824,
   'knowledgebaseenabled' => false,

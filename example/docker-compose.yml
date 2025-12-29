@@ -35,8 +35,6 @@ services:
     container_name: nextcloud-imaginary
     restart: unless-stopped
     init: true
-    tmpfs:
-      - /tmp
 
   app:
     image: ghcr.io/william920429/nextcloud:latest
