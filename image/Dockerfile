@@ -13,6 +13,7 @@ RUN set -eux; \
         mesa-va-drivers \
         ffmpeg \
         supervisor \
+        jq \
     ; \
     rm -rf /var/lib/apt/lists/*;
 
@@ -40,17 +41,18 @@ RUN set -eux; \
     mkdir -p --mode 1777 /var/www/log /var/www/cache; \
     chown www-data:www-data /var/www/log /var/www/cache;
 
-ENV APACHE_PID_FILE=/tmp/apache2.pid
-ENV XDG_CACHE_HOME=/var/www/cache
+ENV APACHE_PID_FILE="/tmp/apache2.pid"
+ENV XDG_CACHE_HOME="/var/www/cache"
+ENV PATH="$PATH:/var/www/html"
 
 COPY custom.config.php /usr/src/nextcloud/config/
 COPY --chmod=755 prepare.sh notifypush.sh /
-COPY supervisord.conf /
-COPY --chmod=755 notifypush-install.sh /docker-entrypoint-hooks.d/before-starting/
+COPY supervisord.conf /etc/supervisor/supervisord.conf
 
 # www-data is 33 on debian
-ENV PUID=33 PGID=33 
+ENV PUID="33" PGID="33"
+ENV NEXTCLOUD_ADMIN_USER="admin" NEXTCLOUD_ADMIN_PASSWORD="some-very-secure-passw0rd"
 
 STOPSIGNAL SIGTERM
 ENTRYPOINT ["/prepare.sh"]
-CMD ["/usr/bin/supervisord", "-c", "/supervisord.conf"]
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]
