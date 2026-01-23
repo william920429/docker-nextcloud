@@ -5,9 +5,9 @@ $CONFIG = array (
   'force_language' => 'zh_TW',
   'default_locale' => 'zh_TW',
   'force_locale' => 'zh_TW',
-  'default_timezone' => 'Asia/Taipei',
+  'default_timezone' => getenv('TZ') ?: 'Etc/UTC',
 
-  'logtimezone' => 'Asia/Taipei',
+  'logtimezone' => getenv('TZ') ?: 'Etc/UTC',
   'logfile' => '/var/www/log/nextcloud.log',
   'log_rotate_size' => 10 * 1024 * 1024,
   'logfile_audit' => '/var/www/log/audit.log',
