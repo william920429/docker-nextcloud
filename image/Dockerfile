@@ -52,7 +52,6 @@ COPY supervisord.conf /etc/supervisor/supervisord.conf
 
 # www-data is 33 on debian
 ENV PUID="33" PGID="33"
-ENV NEXTCLOUD_ADMIN_USER="admin" NEXTCLOUD_ADMIN_PASSWORD="some-very-secure-passw0rd"
 
 STOPSIGNAL SIGTERM
 ENTRYPOINT ["/prepare.sh"]

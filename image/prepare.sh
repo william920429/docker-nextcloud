@@ -65,6 +65,4 @@ if [ "$1" == "/usr/bin/supervisord" ] && [ "$EUID" -eq "0" ]; then
     echo "All things prepared."
 fi
 
-/entrypoint.sh true
-/notifypush.sh install
-exec "$@"
+exec /entrypoint.sh "$@"
