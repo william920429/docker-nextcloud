@@ -14,6 +14,7 @@ RUN set -eux; \
         ffmpeg \
         supervisor \
         jq \
+        iproute2 \
     ; \
     rm -rf /var/lib/apt/lists/*;
 
