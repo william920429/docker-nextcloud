@@ -14,7 +14,9 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: nextcloud
-  NEXTCLOUD_MAJOR: "32"
+  NEXTCLOUD_VERSION: "32"
+  NOTIFYPUSH_VERSION: "1.3.0"
+  SUPERCRONIC_VERSION: "0.2.41"
 
 jobs:
   image-build:

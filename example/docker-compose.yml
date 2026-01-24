@@ -7,7 +7,7 @@ services:
     volumes:
       - postgres:/var/lib/postgresql/data
     environment:
-      - POSTGRES_INITDB_ARGS="--data-checksums"
+      - POSTGRES_INITDB_ARGS=--data-checksums
       - TZ
       - POSTGRES_DB
       - POSTGRES_USER
@@ -17,16 +17,14 @@ services:
       interval: 10s
       timeout: 3s
 
-  redis:
-    image: redis:latest
-    container_name: nextcloud-redis
+  valkey:
+    image: valkey/valkey:9
+    container_name: nextcloud-valkey
     restart: unless-stopped
-    volumes:
-      - redis:/data
     environment:
       - TZ
     healthcheck:
-      test: ["CMD", "redis-cli", "PING"]
+      test: ["CMD", "valkey-cli", "PING"]
       interval: 10s
       timeout: 3s
 
@@ -54,14 +52,14 @@ services:
     ports:
       - 8080:80
     environment:
-      - REDIS_HOST=redis
+      - REDIS_HOST=valkey
       - POSTGRES_HOST=postgres
+      - NOTIFYPUSH_HOST=127.0.0.1
     depends_on:
       - postgres
-      - redis
+      - valkey
 volumes:
   html:
   log:
   cache:
   postgres:
-  redis:

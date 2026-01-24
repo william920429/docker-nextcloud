@@ -1,8 +1,10 @@
-ARG NEXTCLOUD_MAJOR=stable
-FROM nextcloud:${NEXTCLOUD_MAJOR}-apache
+ARG NEXTCLOUD_VERSION
+FROM nextcloud:${NEXTCLOUD_VERSION:+${NEXTCLOUD_VERSION}-}apache
 # Install dependencies
-# intel gpu: intel-media-va-driver-non-free
-# amd gpu and nouveau: mesa-va-drivers
+# intel-media-va-driver-non-free: fot intel gpu
+# mesa-va-drivers: for amd gpu and nouveau
+# ffmpeg: for video preview and memories video stream
+# iproute2: for serverinfo app
 RUN set -eux; \
     . /etc/os-release; \
     echo "deb http://ftp.debian.org/debian ${VERSION_CODENAME} non-free non-free-firmware" >> \
@@ -12,46 +14,49 @@ RUN set -eux; \
         intel-media-va-driver-non-free \
         mesa-va-drivers \
         ffmpeg \
-        supervisor \
-        jq \
         iproute2 \
+        supervisor \
     ; \
     rm -rf /var/lib/apt/lists/*;
 
+# Install notify_push
+# Latest releases available at https://github.com/nextcloud-releases/notify_push/releases
+ARG NOTIFYPUSH_VERSION
+ADD --unpack=true \
+    https://github.com/nextcloud-releases/notify_push/releases/download/v${NOTIFYPUSH_VERSION}/notify_push-v${NOTIFYPUSH_VERSION}.tar.gz \
+    /usr/src/nextcloud/apps/
+
 # Install supercronic
 # Latest releases available at https://github.com/aptible/supercronic/releases
-ENV SUPERCRONIC_URL=https://github.com/aptible/supercronic/releases/download/v0.2.41/supercronic-linux-amd64 \
-    SUPERCRONIC_SHA1SUM=f70ad28d0d739a96dc9e2087ae370c257e79b8d7 \
-    SUPERCRONIC=supercronic-linux-amd64
-
-RUN curl -fsSLO "$SUPERCRONIC_URL" \
- && echo "${SUPERCRONIC_SHA1SUM}  ${SUPERCRONIC}" | sha1sum -c - \
- && chmod +x "$SUPERCRONIC" \
- && mv "$SUPERCRONIC" "/usr/local/bin/${SUPERCRONIC}" \
- && ln -s "/usr/local/bin/${SUPERCRONIC}" /usr/local/bin/supercronic
+ARG SUPERCRONIC_VERSION
+ADD --chmod=755 \
+    https://github.com/aptible/supercronic/releases/download/v${SUPERCRONIC_VERSION}/supercronic-linux-amd64 \
+    /usr/local/bin/supercronic
 
 # Setup apache
 RUN set -eux; \
     echo "ServerName localhost" >> /etc/apache2/apache2.conf; \
     a2enmod proxy proxy_http proxy_wstunnel; \
-    sed -i '/<\/VirtualHost>/i \\n\tProxyPass /push/ws ws://127.0.0.1:7867/ws\n\tProxyPass /push/ http://127.0.0.1:7867/\n\tProxyPassReverse /push/ http://127.0.0.1:7867/' \
-        /etc/apache2/sites-available/000-default.conf
+    sed -e '/<\/VirtualHost>/i \\tProxyPass /push/ws ws://${NOTIFYPUSH_HOST}:7867/ws' \
+        -e '/<\/VirtualHost>/i \\tProxyPass /push/ http://${NOTIFYPUSH_HOST}:7867/' \
+        -e '/<\/VirtualHost>/i \\tProxyPassReverse /push/ http://${NOTIFYPUSH_HOST}:7867/' \
+        -i /etc/apache2/sites-available/000-default.conf
 
-# Setup dir
+# Setup dir and symlink
 RUN set -eux; \
     mkdir -p --mode 1777 /var/www/log /var/www/cache; \
-    chown www-data:www-data /var/www/log /var/www/cache;
-
-ENV APACHE_PID_FILE="/tmp/apache2.pid"
-ENV XDG_CACHE_HOME="/var/www/cache"
-ENV PATH="$PATH:/var/www/html"
+    chown www-data:www-data /var/www/log /var/www/cache; \
+    ln -s /var/www/html/occ /usr/local/bin/occ; \
+    ln -s /usr/src/nextcloud/apps/notify_push/bin/$(arch)/notify_push /usr/local/bin/notify_push;
 
 COPY custom.config.php /usr/src/nextcloud/config/
-COPY --chmod=755 prepare.sh notifypush.sh /
+COPY --chmod=755 prepare.sh /
 COPY supervisord.conf /etc/supervisor/supervisord.conf
 
 # www-data is 33 on debian
-ENV PUID="33" PGID="33"
+ENV PUID="33" PGID="33" \
+    APACHE_PID_FILE="/tmp/apache2.pid" \
+    XDG_CACHE_HOME="/var/www/cache"
 
 STOPSIGNAL SIGTERM
 ENTRYPOINT ["/prepare.sh"]

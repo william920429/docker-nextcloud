@@ -36,6 +36,7 @@ if [ "$1" == "/usr/bin/supervisord" ] && [ "$EUID" -eq "0" ]; then
     check_env POSTGRES_HOST
     check_env REDIS_HOST
     check_env OVERWRITECLIURL
+    check_env NOTIFYPUSH_HOST
 
     if [ "${ENV_OK}" -eq "0" ]; then
         echo "Some environment variables not set!"
@@ -63,6 +64,29 @@ if [ "$1" == "/usr/bin/supervisord" ] && [ "$EUID" -eq "0" ]; then
             -print
     done
     echo "All things prepared."
+
+    # Run official logic (install/upgrade/...)
+    /entrypoint.sh true
+
+    # Prepare notify_push
+    rsync -a --delete --chown www-data:www-data \
+        /usr/src/nextcloud/apps/notify_push/ \
+        /var/www/html/apps/notify_push/
+    occ app:enable notify_push
+
+    # Config manually in case reverse proxy not ready
+    if [ "$(occ config:app:get notify_push base_endpoint)" != "${OVERWRITECLIURL}/push" ]; then
+        # Random value [0, 2**30-1]
+        occ config:app:set notify_push cookie --value "$(($RANDOM*2**15+$RANDOM))"
+        occ config:app:set notify_push base_endpoint --value "${OVERWRITECLIURL}/push"
+    fi
+
+    # ENV
+    export DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}/${POSTGRES_DB}
+    export DATABASE_PREFIX=oc_
+    export REDIS_URL=redis://${REDIS_HOST}
+    export NEXTCLOUD_URL=http://app
+
 fi
 
-exec /entrypoint.sh "$@"
+exec "$@"

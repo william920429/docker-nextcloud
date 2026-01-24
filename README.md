@@ -1,11 +1,13 @@
 # Docker Nextcloud
 ## Features
  - use `$PUID` `$PGID` to change uid gid
- - [notify_push](https://github.com/nextcloud/notify_push) auto install and configured
+ - [notify_push](https://github.com/nextcloud/notify_push) bundled and auto configured
  - ffmpeg and VA-API driver installed (for [memories](https://github.com/pulsejet/memories))
+ - use [supercronic](https://github.com/aptible/supercronic)
 
 ## Versions
  - nextcloud: 32
+ - notify_push: 1.3.0
  - supercronic: 0.2.41
 
 ## How to install
