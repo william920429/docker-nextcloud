@@ -44,8 +44,8 @@ RUN set -eux; \
 
 # Setup dir and symlink
 RUN set -eux; \
-    mkdir -p --mode 1777 /var/www/log /var/www/cache; \
-    chown www-data:www-data /var/www/log /var/www/cache; \
+    mkdir -p --mode 1777 /var/www/cache; \
+    chown www-data:www-data /var/www/cache; \
     ln -s /var/www/html/occ /usr/local/bin/occ; \
     ln -s /usr/src/nextcloud/apps/notify_push/bin/$(arch)/notify_push /usr/local/bin/notify_push;
 

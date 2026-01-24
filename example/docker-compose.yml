@@ -33,6 +33,9 @@ services:
     container_name: nextcloud-imaginary
     restart: unless-stopped
     init: true
+    healthcheck:
+      interval: 10s
+      timeout: 3s
 
   app:
     image: ghcr.io/william920429/nextcloud:latest
@@ -43,23 +46,22 @@ services:
     #   - /dev/dri:/dev/dri
     volumes:
       - html:/var/www/html
-      - log:/var/www/log
       - cache:/var/www/cache
       # - /somewhere/my/data/store:/var/www/html/data
     tmpfs:
       - /tmp:exec
     env_file: .env
     ports:
-      - 8080:80
+      - 21800:80
     environment:
       - REDIS_HOST=valkey
       - POSTGRES_HOST=postgres
-      - NOTIFYPUSH_HOST=127.0.0.1
+      - NOTIFYPUSH_HOST=localhost
     depends_on:
       - postgres
       - valkey
+
 volumes:
   html:
-  log:
   cache:
   postgres:

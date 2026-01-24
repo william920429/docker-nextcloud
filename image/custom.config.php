@@ -8,9 +8,9 @@ $CONFIG = array (
   'default_timezone' => getenv('TZ') ?: 'Etc/UTC',
 
   'logtimezone' => getenv('TZ') ?: 'Etc/UTC',
-  'logfile' => '/var/www/log/nextcloud.log',
+  'logfile' => '/var/www/cache/nextcloud.log',
   'log_rotate_size' => 10 * 1024 * 1024,
-  'logfile_audit' => '/var/www/log/audit.log',
+  'logfile_audit' => '/var/www/cache/audit.log',
   'cache_path' => '/var/www/cache/nextcloud',
   'skeletondirectory' => '',
   'trashbin_retention_obligation' => 'auto, 30',

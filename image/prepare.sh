@@ -57,7 +57,7 @@ if [ "$1" == "/usr/bin/supervisord" ] && [ "$EUID" -eq "0" ]; then
     [ "$(id -u www-data)" -ne "${PUID}" ] && usermod  -o -u "${PUID}" www-data
     [ "$(id -g www-data)" -ne "${PGID}" ] && groupmod -o -g "${PGID}" www-data
 
-    for dir in /var/www/html /var/www/log /var/www/cache; do
+    for dir in /var/www/html /var/www/cache; do
         echo "Checking permissions for ${dir}..."
         find "${dir}" ! -user www-data -or ! -group www-data \
             -exec chown --no-dereference www-data:www-data {} \; \
