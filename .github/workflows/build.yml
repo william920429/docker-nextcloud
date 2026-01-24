@@ -52,11 +52,13 @@ jobs:
           cache-to: type=gha,mode=max
           context: ./image
           tags: |
-            ${{ env.REGISTRY }}/${{ github.actor }}/${{ env.IMAGE_NAME }}:${{ env.NEXTCLOUD_MAJOR }}
-            ${{ env.REGISTRY }}/${{ github.actor }}/${{ env.IMAGE_NAME }}:${{ env.NEXTCLOUD_MAJOR }}-${{ steps.date.outputs.date }}
+            ${{ env.REGISTRY }}/${{ github.actor }}/${{ env.IMAGE_NAME }}:${{ env.NEXTCLOUD_VERSION }}
+            ${{ env.REGISTRY }}/${{ github.actor }}/${{ env.IMAGE_NAME }}:${{ env.NEXTCLOUD_VERSION }}-${{ steps.date.outputs.date }}
             ${{ env.REGISTRY }}/${{ github.actor }}/${{ env.IMAGE_NAME }}:latest
           build-args: |
-            NEXTCLOUD_MAJOR=${{ env.NEXTCLOUD_MAJOR }}
+            NEXTCLOUD_VERSION=${{ env.NEXTCLOUD_VERSION }}
+            NOTIFYPUSH_VERSION=${{ env.NOTIFYPUSH_VERSION }}
+            SUPERCRONIC_VERSION=${{ env.SUPERCRONIC_VERSION }}
 
   cleanup:
     needs: image-build
