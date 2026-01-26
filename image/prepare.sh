@@ -54,7 +54,7 @@ if [ "$EUID" -eq "0" ]; then
             prepare
             for dir in /var/www/html /var/www/cache; do
                 echo "Checking permissions for ${dir}..."
-                find "${dir}" ! -user www-data -or ! -group www-data \
+                find "${dir}" \( ! -user www-data -or ! -group www-data \) \
                     -exec chown --no-dereference www-data:www-data {} \; \
                     -print
             done
