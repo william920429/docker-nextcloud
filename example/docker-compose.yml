@@ -54,9 +54,10 @@ services:
     ports:
       - 21800:80
     environment:
-      - REDIS_HOST=valkey
+      - NEXTCLOUD_HOST=app
       - POSTGRES_HOST=postgres
-      - NOTIFYPUSH_HOST=localhost
+      - REDIS_HOST=valkey
+      - NOTIFYPUSH_HOST=app
     depends_on:
       - postgres
       - valkey

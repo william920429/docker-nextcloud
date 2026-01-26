@@ -35,7 +35,9 @@ ADD --chmod=755 \
 
 # Setup apache
 RUN set -eux; \
-    echo "ServerName localhost" >> /etc/apache2/apache2.conf; \
+    sed -e '$a ServerName localhost' \
+        -e '$a GracefulShutdownTimeout 3' \
+    -i /etc/apache2/apache2.conf; \
     a2enmod proxy proxy_http proxy_wstunnel; \
     sed -e '/<\/VirtualHost>/i \\tProxyPass /push/ws ws://${NOTIFYPUSH_HOST}:7867/ws' \
         -e '/<\/VirtualHost>/i \\tProxyPass /push/ http://${NOTIFYPUSH_HOST}:7867/' \
@@ -53,9 +55,7 @@ COPY custom.config.php /usr/src/nextcloud/config/
 COPY --chmod=755 prepare.sh /
 COPY supervisord.conf /etc/supervisor/supervisord.conf
 
-# www-data is 33 on debian
-ENV PUID="33" PGID="33" \
-    APACHE_PID_FILE="/tmp/apache2.pid" \
+ENV APACHE_PID_FILE="/tmp/apache2.pid" \
     XDG_CACHE_HOME="/var/www/cache"
 
 STOPSIGNAL SIGTERM
