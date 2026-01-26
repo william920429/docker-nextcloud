@@ -57,10 +57,29 @@ services:
       - NEXTCLOUD_HOST=app
       - POSTGRES_HOST=postgres
       - REDIS_HOST=valkey
-      - NOTIFYPUSH_HOST=app
+      - NOTIFYPUSH_HOST=notifypush
     depends_on:
       - postgres
       - valkey
+  
+  cron:
+    extends: app
+    container_name: nextcloud-cron
+    stop_signal: SIGTERM
+    command: supercronic /var/spool/cron/crontabs/www-data
+    ports: !reset
+    depends_on: 
+      - app
+
+  notifypush:
+    extends: app
+    container_name: nextcloud-notifypush
+    stop_signal: SIGTERM
+    command: notify_push --log-level info
+    ports: !reset
+    depends_on: 
+      - app
+
 
 volumes:
   html:

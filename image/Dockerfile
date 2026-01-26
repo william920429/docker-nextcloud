@@ -15,7 +15,6 @@ RUN set -eux; \
         mesa-va-drivers \
         ffmpeg \
         iproute2 \
-        supervisor \
     ; \
     rm -rf /var/lib/apt/lists/*;
 
@@ -52,12 +51,11 @@ RUN set -eux; \
     ln -s /usr/src/nextcloud/apps/notify_push/bin/$(arch)/notify_push /usr/local/bin/notify_push;
 
 COPY custom.config.php /usr/src/nextcloud/config/
-COPY --chmod=755 prepare.sh /
-COPY supervisord.conf /etc/supervisor/supervisord.conf
+COPY --chmod=755 prepare.sh su.py /
 
 ENV APACHE_PID_FILE="/tmp/apache2.pid" \
     XDG_CACHE_HOME="/var/www/cache"
 
-STOPSIGNAL SIGTERM
+STOPSIGNAL SIGWINCH
 ENTRYPOINT ["/prepare.sh"]
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]
+CMD ["apache2-foreground"]
