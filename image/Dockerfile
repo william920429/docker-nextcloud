@@ -45,6 +45,8 @@ RUN set -eux; \
 
 # Setup dir and symlink
 RUN set -eux; \
+    chown root:root /var/www; \
+    rmdir /var/www/data; \
     mkdir -p --mode 1777 /var/www/cache; \
     chown www-data:www-data /var/www/cache; \
     ln -s /var/www/html/occ /usr/local/bin/occ; \

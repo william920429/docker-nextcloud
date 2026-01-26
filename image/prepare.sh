@@ -39,8 +39,8 @@ prepare() {
     fi
 
     # Change www-data:www-data to ${PUID}:${PGID}
-    usermod  -o -u "${PUID}" www-data
-    groupmod -o -g "${PGID}" www-data
+    groupmod www-data -o -g "${PGID}"
+    usermod  www-data -o -u "${PUID}" -d /nonexistent
 
     # Make VA-API accessible by www-data
     if [ -c "/dev/dri/renderD128" ]; then
