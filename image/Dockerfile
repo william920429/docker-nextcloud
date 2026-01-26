@@ -36,12 +36,12 @@ ADD --chmod=755 \
 RUN set -eux; \
     sed -e '$a ServerName localhost' \
         -e '$a GracefulShutdownTimeout 3' \
-    -i /etc/apache2/apache2.conf; \
+        -i /etc/apache2/apache2.conf; \
     a2enmod proxy proxy_http proxy_wstunnel; \
     sed -e '/<\/VirtualHost>/i \\tProxyPass /push/ws ws://${NOTIFYPUSH_HOST}:7867/ws' \
         -e '/<\/VirtualHost>/i \\tProxyPass /push/ http://${NOTIFYPUSH_HOST}:7867/' \
         -e '/<\/VirtualHost>/i \\tProxyPassReverse /push/ http://${NOTIFYPUSH_HOST}:7867/' \
-        -i /etc/apache2/sites-available/000-default.conf
+        -i /etc/apache2/sites-available/000-default.conf;
 
 # Setup dir and symlink
 RUN set -eux; \
