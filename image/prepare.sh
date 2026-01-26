@@ -18,6 +18,10 @@ check_env () {
 if [ "$1" == "/usr/bin/supervisord" ] && [ "$EUID" -eq "0" ]; then
     # Check environment variables
     echo "Checking environment variables..."
+    export PUID=${PUID:-33}
+    export PGID=${PGID:-33}
+    check_env PUID
+    check_env PGID
     check_env NEXTCLOUD_ADMIN_USER
     check_env NEXTCLOUD_ADMIN_PASSWORD sensitive
     check_env NEXTCLOUD_HOST
@@ -35,14 +39,8 @@ if [ "$1" == "/usr/bin/supervisord" ] && [ "$EUID" -eq "0" ]; then
     fi
 
     # Change www-data:www-data to ${PUID}:${PGID}
-    export PUID=${PUID:-33}
-    if [ "$(id -u www-data)" -ne "${PUID}" ]; then
-        usermod -o -u "${PUID}" www-data
-    fi
-    export PGID=${PGID:-33}
-    if [ "$(id -g www-data)" -ne "${PGID}" ]; then
-        groupmod -o -g "${PGID}" www-data
-    fi
+    usermod  -o -u "${PUID}" www-data
+    groupmod -o -g "${PGID}" www-data
 
     # Make VA-API accessible by www-data
     if [ -c "/dev/dri/renderD128" ]; then
