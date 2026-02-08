@@ -13,7 +13,7 @@ _check_env () {
         echo "${KEY} not set"
         ENV_OK=0
     else
-        echo "${KEY}='${VALUE}'"
+        echo "${KEY}=\"${VALUE}\""
     fi
 }
 

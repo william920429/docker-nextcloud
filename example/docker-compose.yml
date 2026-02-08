@@ -22,6 +22,7 @@ services:
     container_name: nextcloud-valkey
     restart: unless-stopped
     environment:
+      - VALKEY_EXTRA_FLAGS=--save "" --appendonly no
       - TZ
     healthcheck:
       test: ["CMD", "valkey-cli", "PING"]
