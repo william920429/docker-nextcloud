@@ -14,9 +14,6 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: nextcloud
-  NEXTCLOUD_VERSION: "32"
-  NOTIFYPUSH_VERSION: "1.3.0"
-  SUPERCRONIC_VERSION: "0.2.41"
 
 jobs:
   image-build:
@@ -48,17 +45,13 @@ jobs:
           platforms: linux/amd64
           pull: true
           push: ${{ github.event_name != 'pull_request' }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ github.actor }}/${{ env.IMAGE_NAME }}:buildcache
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ github.actor }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
           context: ./image
           tags: |
             ${{ env.REGISTRY }}/${{ github.actor }}/${{ env.IMAGE_NAME }}:${{ env.NEXTCLOUD_VERSION }}
             ${{ env.REGISTRY }}/${{ github.actor }}/${{ env.IMAGE_NAME }}:${{ env.NEXTCLOUD_VERSION }}-${{ steps.date.outputs.date }}
             ${{ env.REGISTRY }}/${{ github.actor }}/${{ env.IMAGE_NAME }}:latest
-          build-args: |
-            NEXTCLOUD_VERSION=${{ env.NEXTCLOUD_VERSION }}
-            NOTIFYPUSH_VERSION=${{ env.NOTIFYPUSH_VERSION }}
-            SUPERCRONIC_VERSION=${{ env.SUPERCRONIC_VERSION }}
 
   cleanup:
     needs: image-build
@@ -72,4 +65,5 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           package: ${{ env.IMAGE_NAME }}
           delete-untagged: true
+          older-than: 1 months
           keep-n-tagged: 5

@@ -3,12 +3,12 @@
  - use `$PUID` `$PGID` to change uid gid
  - [notify_push](https://github.com/nextcloud/notify_push) bundled and auto configured
  - ffmpeg and VA-API driver installed (for [memories](https://github.com/pulsejet/memories))
- - use [supercronic](https://github.com/aptible/supercronic)
+ - use [supercronic](https://github.com/aptible/supercronic) as cron
 
 ## Versions
  - nextcloud: 32
  - notify_push: 1.3.0
- - supercronic: 0.2.41
+ - supercronic: 0.2.42
 
 ## How to install
 ### Copy example files
@@ -41,6 +41,12 @@ app:
   volumes:
     - html:/var/www/html
     # - /somewhere/my/data/store:/var/www/html/data
+
+cron:
+  restart: unless-stopped
+  # Uncomment to enable dri device (VA-API)
+  # devices:
+  #   - /dev/dri:/dev/dri
     
 ```
 

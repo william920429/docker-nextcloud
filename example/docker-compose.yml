@@ -32,8 +32,9 @@ services:
     image: ghcr.io/nextcloud-releases/aio-imaginary:latest
     container_name: nextcloud-imaginary
     restart: unless-stopped
-    init: true
+    entrypoint: imaginary -p 9000 -return-size -max-allowed-resolution 222.2
     healthcheck:
+      test: ["CMD", "nc", "-z", "127.0.0.1", "9000"]
       interval: 10s
       timeout: 3s
 
@@ -53,31 +54,40 @@ services:
     env_file: .env
     ports:
       - 21800:80
-    environment:
-      - NEXTCLOUD_HOST=app
-      - POSTGRES_HOST=postgres
-      - REDIS_HOST=valkey
-      - NOTIFYPUSH_HOST=notifypush
+    healthcheck:
+      test: ["CMD", "nc", "-z", "127.0.0.1", "80"]
+      interval: 10s
+      timeout: 3s
     depends_on:
       - postgres
       - valkey
   
   cron:
-    extends: app
+    image: ghcr.io/william920429/nextcloud:latest
     container_name: nextcloud-cron
     stop_signal: SIGTERM
+    restart: unless-stopped
     command: supercronic -quiet /var/spool/cron/crontabs/www-data
-    ports: !reset
-    depends_on: 
+    # Uncomment to enable dri device (VA-API)
+    # devices:
+    #   - /dev/dri:/dev/dri
+    env_file: .env
+    volumes_from:
       - app
 
   notifypush:
-    extends: app
+    image: ghcr.io/william920429/nextcloud:latest
     container_name: nextcloud-notifypush
     stop_signal: SIGTERM
-    command: notify_push
-    ports: !reset
-    depends_on: 
+    restart: unless-stopped
+    command: |
+      notify_push
+        --port "7867" \
+        --database-url "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}/${POSTGRES_DB}" \
+        --database-prefix "oc_" \
+        --redis-url "redis://${REDIS_HOST}" \
+        --nextcloud-url "http://${NEXTCLOUD_HOST}"
+    volumes_from:
       - app
 
 
