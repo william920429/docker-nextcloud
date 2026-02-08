@@ -87,9 +87,13 @@ services:
         --database-prefix "oc_"
         --redis-url "redis://${REDIS_HOST}"
         --nextcloud-url "http://${NEXTCLOUD_HOST}"
+    healthcheck:
+      test: ["CMD", "nc", "-z", "127.0.0.1", "7867"]
+      interval: 10s
+      timeout: 3s
+    env_file: .env
     volumes_from:
       - app
-
 
 volumes:
   html:
