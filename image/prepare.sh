@@ -59,11 +59,13 @@ setup_user(){
 }
 
 fix_permission(){
-    echo "Checking permissions..."
-    find /var/www -path "*/.snapshots" -prune -or \
-        \( ! -user www-data -or ! -group www-data \) \
-        -exec chown --no-dereference www-data:www-data {} \; \
-        -print
+    for dir in /var/www/html /var/www/cache; do
+        echo "Checking permissions for ${dir}..."
+        find "${dir}" -path "*/.snapshots" -prune -or \
+            \( ! -user www-data -or ! -group www-data \) \
+            -exec chown --no-dereference www-data:www-data {} \; \
+            -print
+    done
 }
 
 setup_notifypush(){

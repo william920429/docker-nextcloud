@@ -51,10 +51,12 @@ RUN set -eux; \
         -i /etc/apache2/sites-available/000-default.conf; \
     usermod www-data -d /nonexistent; \
     rm -f /etc/group- /etc/passwd- /etc/.pwd.lock; \
+    chown root:root /var/www; \
+    chmod 755 /var/www; \
     rmdir /var/www/data; \
     mkdir -p /var/www/cache; \
-    chown -R www-data:www-data /var/www; \
-    chmod -R 700 /var/www; \
+    chown www-data:www-data /var/www/html /var/www/cache; \
+    chmod 700 /var/www/html /var/www/cache; \
     ln -s /var/www/html/occ /usr/local/bin/occ; \
     ln -s /usr/src/nextcloud/apps/notify_push/bin/$(arch)/notify_push /usr/local/bin/notify_push;
 

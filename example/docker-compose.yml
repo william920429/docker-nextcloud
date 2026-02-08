@@ -82,10 +82,10 @@ services:
     restart: unless-stopped
     command: |
       notify_push
-        --port "7867" \
-        --database-url "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}/${POSTGRES_DB}" \
-        --database-prefix "oc_" \
-        --redis-url "redis://${REDIS_HOST}" \
+        --port "7867"
+        --database-url "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}/${POSTGRES_DB}"
+        --database-prefix "oc_"
+        --redis-url "redis://${REDIS_HOST}"
         --nextcloud-url "http://${NEXTCLOUD_HOST}"
     volumes_from:
       - app
