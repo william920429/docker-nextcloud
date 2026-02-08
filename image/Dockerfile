@@ -34,6 +34,7 @@ ADD --unpack=true \
 # Install supercronic
 # Latest releases available at https://github.com/aptible/supercronic/releases
 ARG SUPERCRONIC_VERSION
+ARG TARGETARCH
 ADD --chmod=755 \
     https://github.com/aptible/supercronic/releases/download/v${SUPERCRONIC_VERSION}/supercronic-linux-${TARGETARCH} \
     /usr/local/bin/supercronic
