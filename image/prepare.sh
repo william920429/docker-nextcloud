@@ -84,7 +84,7 @@ setup_notifypush(){
 wait_nextcloud(){
     local max_retries=10
     local try=0
-    until  [ "$try" -gt "$max_retries" ] || nc -z 127.0.0.1 80
+    until  [ "$try" -gt "$max_retries" ] || nc -z "${NEXTCLOUD_HOST}" 80
     do
         echo "waiting for nextcloud ready..."
         try=$((try+1))
