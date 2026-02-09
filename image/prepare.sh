@@ -2,7 +2,7 @@
 set -eu
 
 exec_as(){
-    exec setpriv --reuid "${PUID}" --regid "${PGID}" --clear-groups -- "$@"
+    exec setpriv --reuid "${PUID}" --regid "${PGID}" --clear-groups --no-new-privs -- "$@"
 }
 
 ENV_OK=1
@@ -110,7 +110,7 @@ if [ "$EUID" -eq "0" ]; then
             /entrypoint.sh true
             setup_notifypush
             echo Starting: "$@"
-            exec "$@"
+            exec setpriv --no-new-privs "$@"
         ;;
         supercronic)
             check_env
