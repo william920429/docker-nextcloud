@@ -94,7 +94,7 @@ services:
       timeout: 3s
     env_file: .env
     volumes_from:
-      - app
+      - app:ro
 
 volumes:
   html:

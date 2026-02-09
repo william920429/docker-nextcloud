@@ -99,7 +99,7 @@ wait_nextcloud(){
 }
 
 if [ "$EUID" -eq "0" ]; then
-    case "$1" in
+    case "$(basename "$1")" in
         apache2-foreground)
             check_env
             setup_user
