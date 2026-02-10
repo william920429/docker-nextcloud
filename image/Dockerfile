@@ -27,7 +27,7 @@ RUN set -eux; \
 # Install notify_push
 # Latest releases available at https://github.com/nextcloud-releases/notify_push/releases
 ARG NOTIFYPUSH_VERSION
-ADD --unpack=true \
+ADD --link --unpack=true \
     https://github.com/nextcloud-releases/notify_push/releases/download/v${NOTIFYPUSH_VERSION}/notify_push-v${NOTIFYPUSH_VERSION}.tar.gz \
     /usr/src/nextcloud/apps/
 
@@ -35,7 +35,7 @@ ADD --unpack=true \
 # Latest releases available at https://github.com/aptible/supercronic/releases
 ARG SUPERCRONIC_VERSION
 ARG TARGETARCH
-ADD --chmod=755 \
+ADD --link --chmod=755 \
     https://github.com/aptible/supercronic/releases/download/v${SUPERCRONIC_VERSION}/supercronic-linux-${TARGETARCH} \
     /usr/local/bin/supercronic
 
@@ -60,8 +60,8 @@ RUN set -eux; \
     ln -s /var/www/html/occ /usr/local/bin/occ; \
     ln -s /usr/src/nextcloud/apps/notify_push/bin/$(arch)/notify_push /usr/local/bin/notify_push;
 
-COPY custom.config.php /usr/src/nextcloud/config/
-COPY --chmod=755 prepare.sh /
+COPY --link custom.config.php /usr/src/nextcloud/config/
+COPY --link --chmod=755 prepare.sh /
 
 ENV APACHE_PID_FILE="/tmp/apache2.pid" \
     XDG_CACHE_HOME="/var/www/cache"
