@@ -34,8 +34,8 @@ $CONFIG = array (
   ),
 
   'check_for_working_htaccess' => true,
-  'maintenance_window_start' => 20,
-  'files.chunked_upload.max_size' => 1073741824,
+  'maintenance_window_start' => getenv('NEXTCLOUD_MAINTENANCE_WINDOW_START') ?: 100,
+  'files.chunked_upload.max_size' => getenv('NEXTCLOUD_FILES_CHUNKED_UPLOAD_MAX_SIZE') ?: 1073741824,
   'knowledgebaseenabled' => false,
-  'filesystem_check_changes' => getenv('NEXTCLOUD_CHECK_CHANGE') ?: 0,
+  'filesystem_check_changes' => getenv('NEXTCLOUD_FILESYSTEM_CHECK_CHANGES') ?: 0,
 );

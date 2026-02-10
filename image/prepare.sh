@@ -84,13 +84,16 @@ setup_notifypush(){
 }
 
 wait_nextcloud(){
+    trap 'exit 143;' SIGTERM
+
     local max_retries=10
     local try=0
     until  [ "$try" -gt "$max_retries" ] || nc -z "${NEXTCLOUD_HOST}" 80
     do
         echo "waiting for nextcloud ready..."
         try=$((try+1))
-        sleep 10s
+        sleep 10s &
+        wait $!
     done
     if [ "$try" -gt "$max_retries" ]; then
         echo "nextcloud seems not running, exiting..."
