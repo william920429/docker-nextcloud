@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 set -eu -o pipefail
-shopt -s expand_aliases
-
-alias run_as='setpriv --reuid "${PUID}" --regid "${PGID}" --clear-groups --no-new-privs --'
 
 ENV_OK=1
 _check_env () {
@@ -130,9 +127,6 @@ if [ "$EUID" -eq "0" ]; then
         notify_push)
             wait_nextcloud
             echo Starting: "$@"
-            exec run_as "$@"
-        ;;
-        occ)
             exec run_as "$@"
         ;;
     esac

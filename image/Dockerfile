@@ -54,10 +54,10 @@ RUN set -eux; \
     mkdir -p /var/www/cache; \
     chown www-data:www-data /var/www/html /var/www/cache; \
     chmod 700 /var/www/html /var/www/cache; \
-    ln -s /var/www/html/occ /usr/local/bin/occ; \
     ln -s /usr/src/nextcloud/apps/notify_push/bin/$(arch)/notify_push /usr/local/bin/notify_push;
 
 COPY --link custom.config.php /usr/src/nextcloud/config/
+COPY --link --chmod=755 occ run_as /usr/local/bin/
 COPY --link --chmod=755 prepare.sh /
 
 ENV APACHE_PID_FILE="/tmp/apache2.pid" \
