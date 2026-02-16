@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
-set -eu
+set -eu -o pipefail
+shopt -s expand_aliases
 
-exec_as(){
-    exec setpriv --reuid "${PUID}" --regid "${PGID}" --clear-groups --no-new-privs -- "$@"
-}
+alias run_as='setpriv --reuid "${PUID}" --regid "${PGID}" --clear-groups --no-new-privs --'
 
 ENV_OK=1
 _check_env () {
@@ -41,30 +40,29 @@ check_env() {
     fi
 }
 
-setup_user(){
-    # Change www-data:www-data to ${PUID}:${PGID}
-    [ "$(id -g www-data)" -ne "${PGID}" ] && groupmod www-data -o -g "${PGID}" || true
-    [ "$(id -u www-data)" -ne "${PUID}" ] && usermod  www-data -o -u "${PUID}" || true
-    rm -f /etc/group- /etc/passwd- /etc/.pwd.lock
-
-    # Make VA-API accessible by www-data
+setup_devices(){
+    # Make VA-API accessible
     if [ -c "/dev/dri/renderD128" ]; then
-        chgrp www-data /dev/dri/renderD128
+        chgrp "${PGID}" /dev/dri/renderD128
     fi
 
-    # Make TTY accessible by www-data
+    # Make TTY accessible
     if [ -c "/dev/stdout" ]; then
-        chgrp www-data /dev/stdout
+        chgrp "${PGID}" /dev/stdout
+    else
+        echo "error: should run with --tty (docker) or tty: true (docker compose)"
+        exit 1
     fi
 }
 
 fix_permission(){
     for dir in /var/www/html /var/www/cache; do
         echo "Checking permissions for ${dir}..."
-        find "${dir}" -path "*/.snapshots" -prune -or \
-            \( ! -user www-data -or ! -group www-data \) \
-            -exec chown --no-dereference www-data:www-data {} \; \
-            -print
+        if [ "$(stat -c '%u:%g' "${dir}")" != "${PUID}:${PGID}" ]; then
+            find "${dir}" \( ! -uid "${PUID}" -or ! -gid "${PGID}" \) \
+                -exec chown --no-dereference "${PUID}:${PGID}" '{}' + \
+                -print
+        fi
     done
 }
 
@@ -101,32 +99,41 @@ wait_nextcloud(){
     fi
 }
 
+nextcloud_entrypoint(){
+    # Run /entrypoint.sh logic (install/upgrade/...)
+    export NEXTCLOUD_UPDATE=1
+    export NEXTCLOUD_INIT_HTACCESS=1
+    touch /usr/local/etc/php/conf.d/redis-session.ini
+    chmod 666 /usr/local/etc/php/conf.d/redis-session.ini
+    run_as /entrypoint.sh true
+    chmod 644 /usr/local/etc/php/conf.d/redis-session.ini
+}
+
 if [ "$EUID" -eq "0" ]; then
     case "$(basename "$1")" in
         apache2-foreground)
             check_env
-            setup_user
+            setup_devices
             fix_permission
-            # Run /entrypoint.sh logic (install/upgrade/...)
-            export NEXTCLOUD_UPDATE=1
-            export NEXTCLOUD_INIT_HTACCESS=1
-            /entrypoint.sh true
+            nextcloud_entrypoint
             setup_notifypush
             echo Starting: "$@"
-            exec setpriv --no-new-privs "$@"
+            exec run_as "$@"
         ;;
         supercronic)
             check_env
-            setup_user
+            setup_devices
             wait_nextcloud
             echo Starting: "$@"
-            exec_as "$@"
+            exec run_as "$@"
         ;;
         notify_push)
-            setup_user
             wait_nextcloud
             echo Starting: "$@"
-            exec_as "$@"
+            exec run_as "$@"
+        ;;
+        occ)
+            exec run_as "$@"
         ;;
     esac
 fi
