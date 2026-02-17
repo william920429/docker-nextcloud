@@ -3,14 +3,18 @@ ARG NOTIFYPUSH_VERSION="1.3.0"
 ARG SUPERCRONIC_VERSION="0.2.43"
 ARG TARGETARCH
 
-FROM nextcloud:${NEXTCLOUD_VERSION:+${NEXTCLOUD_VERSION}-}apache
+FROM nextcloud:${NEXTCLOUD_VERSION}-apache
 # Install dependencies
 # intel-media-va-driver-non-free: for intel gpu
 # mesa-va-drivers: for amd gpu and nouveau
 # ffmpeg: for video preview and memories video stream
 # iproute2: for serverinfo app
 # netcat-openbsd: for healthcheck and prepare.sh
-RUN set -eux; \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
+    set -eux; \
+    rm -f /etc/apt/apt.conf.d/docker-clean; \
+    echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache; \
     . /etc/os-release; \
     echo "deb http://ftp.debian.org/debian ${VERSION_CODENAME} non-free non-free-firmware" >> \
        /etc/apt/sources.list.d/intel-graphics.list; \
@@ -22,7 +26,7 @@ RUN set -eux; \
         iproute2 \
         netcat-openbsd \
     ; \
-    rm -rf /var/lib/apt/lists/*;
+    apt autoclean;
 
 # Install notify_push
 # Latest releases available at https://github.com/nextcloud-releases/notify_push/releases
