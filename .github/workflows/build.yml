@@ -53,7 +53,7 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ github.actor }}/${{ matrix.IMAGE_NAME }}:buildcache
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ github.actor }}/${{ matrix.IMAGE_NAME }}:buildcache,mode=max
-          context: ./image/${{ matrix.IMAGE_NAME }}
+          context: ./images/${{ matrix.IMAGE_NAME }}
           tags: |
             ${{ env.REGISTRY }}/${{ github.actor }}/${{ matrix.IMAGE_NAME }}:${{ matrix.IMAGE_VERSION }}
             ${{ env.REGISTRY }}/${{ github.actor }}/${{ matrix.IMAGE_NAME }}:${{ matrix.IMAGE_VERSION }}-${{ steps.date.outputs.date }}
