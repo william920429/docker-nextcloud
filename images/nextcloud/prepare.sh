@@ -56,7 +56,8 @@ fix_permission(){
     for dir in /var/www/html /var/www/cache; do
         echo "Checking permissions for ${dir}..."
         if [ "$(stat -c '%u:%g' "${dir}")" != "${PUID}:${PGID}" ]; then
-            find "${dir}" \( ! -uid "${PUID}" -or ! -gid "${PGID}" \) \
+            find "${dir}" -xdev \
+                \( ! -uid "${PUID}" -or ! -gid "${PGID}" \) \
                 -exec chown --no-dereference "${PUID}:${PGID}" '{}' + \
                 -print
         fi

@@ -13,11 +13,16 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: nextcloud
-  NEXTCLOUD_VERSION: "32"
 
 jobs:
   image-build:
+    strategy:
+      matrix:
+        include:
+          - IMAGE_NAME: nextcloud
+            IMAGE_VERSION: "32"
+          - IMAGE_NAME: elasticsearch
+            IMAGE_VERSION: "9.3.0"
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -46,13 +51,13 @@ jobs:
           platforms: linux/amd64
           pull: true
           push: ${{ github.event_name != 'pull_request' }}
-          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ github.actor }}/${{ env.IMAGE_NAME }}:buildcache
-          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ github.actor }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
-          context: ./image
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ github.actor }}/${{ matrix.IMAGE_NAME }}:buildcache
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ github.actor }}/${{ matrix.IMAGE_NAME }}:buildcache,mode=max
+          context: ./image/${{ matrix.IMAGE_NAME }}
           tags: |
-            ${{ env.REGISTRY }}/${{ github.actor }}/${{ env.IMAGE_NAME }}:${{ env.NEXTCLOUD_VERSION }}
-            ${{ env.REGISTRY }}/${{ github.actor }}/${{ env.IMAGE_NAME }}:${{ env.NEXTCLOUD_VERSION }}-${{ steps.date.outputs.date }}
-            ${{ env.REGISTRY }}/${{ github.actor }}/${{ env.IMAGE_NAME }}:latest
+            ${{ env.REGISTRY }}/${{ github.actor }}/${{ matrix.IMAGE_NAME }}:${{ matrix.IMAGE_VERSION }}
+            ${{ env.REGISTRY }}/${{ github.actor }}/${{ matrix.IMAGE_NAME }}:${{ matrix.IMAGE_VERSION }}-${{ steps.date.outputs.date }}
+            ${{ env.REGISTRY }}/${{ github.actor }}/${{ matrix.IMAGE_NAME }}:latest
 
   cleanup:
     needs: image-build
@@ -60,11 +65,11 @@ jobs:
     permissions:
       packages: write
     steps:
-      - name: clean ${{ env.IMAGE_NAME }} image
+      - name: Ghcr.io Cleanup
         uses: dataaxiom/ghcr-cleanup-action@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          package: ${{ env.IMAGE_NAME }}
+          packages: nextcloud,elasticsearch
           delete-untagged: true
           older-than: 1 months
           keep-n-tagged: 5
