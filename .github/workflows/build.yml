@@ -5,7 +5,7 @@ on:
     branches:
       - master
     paths:
-      - "image/**"
+      - "images/**"
       - ".github/workflows/build.yml"
   schedule:
     - cron: "18 18 * * 2,6"
