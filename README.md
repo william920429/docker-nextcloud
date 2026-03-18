@@ -7,8 +7,8 @@
 
 ## Versions
  - nextcloud: 32
- - notify_push: 1.3.0
- - supercronic: 0.2.42
+ - notify_push: 1.3.1
+ - supercronic: 0.2.44
 
 ## How to install
 ### Copy example files

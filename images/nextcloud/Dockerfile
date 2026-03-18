@@ -1,7 +1,6 @@
 ARG NEXTCLOUD_VERSION="32"
-ARG NOTIFYPUSH_VERSION="1.3.0"
-ARG SUPERCRONIC_VERSION="0.2.43"
-ARG TARGETARCH
+ARG NOTIFYPUSH_VERSION="1.3.1"
+ARG SUPERCRONIC_VERSION="0.2.44"
 
 FROM nextcloud:${NEXTCLOUD_VERSION}-apache
 # Install dependencies
@@ -25,6 +24,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
         ffmpeg \
         iproute2 \
         netcat-openbsd \
+        libnss-wrapper \
     ; \
     apt autoclean;
 
@@ -38,9 +38,8 @@ ADD --link --unpack=true \
 # Install supercronic
 # Latest releases available at https://github.com/aptible/supercronic/releases
 ARG SUPERCRONIC_VERSION
-ARG TARGETARCH
 ADD --link --chmod=755 \
-    https://github.com/aptible/supercronic/releases/download/v${SUPERCRONIC_VERSION}/supercronic-linux-${TARGETARCH} \
+    https://github.com/aptible/supercronic/releases/download/v${SUPERCRONIC_VERSION}/supercronic-linux-amd64 \
     /usr/local/bin/supercronic
 
 # Setup apache, dir and symlink

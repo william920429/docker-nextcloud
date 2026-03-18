@@ -52,6 +52,18 @@ setup_devices(){
     fi
 }
 
+setup_user() {
+    NSS_WRAPPER_PASSWD="/tmp/passwd"
+    NSS_WRAPPER_GROUP="/tmp/group"
+    LD_PRELOAD="/usr/lib/x86_64-linux-gnu/libnss_wrapper.so"
+    printf 'root:x:0:0:root:/root:/bin/bash\n' > "${NSS_WRAPPER_PASSWD}"
+    printf 'www-data:x:%s:%s:www-data:/var/www:/usr/sbin/nologin\n' "${PUID}" "${PGID}" >> "${NSS_WRAPPER_PASSWD}"
+    
+    printf 'root:x:0:\n' > "${NSS_WRAPPER_GROUP}"
+    printf 'www-data:x:%s:\n' "${PGID}" >> "${NSS_WRAPPER_GROUP}"
+    export LD_PRELOAD NSS_WRAPPER_PASSWD NSS_WRAPPER_GROUP
+}
+
 fix_permission(){
     for dir in /var/www/html /var/www/cache; do
         echo "Checking permissions for ${dir}..."
@@ -112,6 +124,7 @@ if [ "$EUID" -eq "0" ]; then
         apache2-foreground)
             check_env
             setup_devices
+            setup_user
             fix_permission
             nextcloud_entrypoint
             setup_notifypush
@@ -121,12 +134,15 @@ if [ "$EUID" -eq "0" ]; then
         supercronic)
             check_env
             setup_devices
+            setup_user
             wait_nextcloud
             echo Starting: "$@"
             exec run_as "$@"
         ;;
         notify_push)
             wait_nextcloud
+            setup_devices
+            setup_user
             echo Starting: "$@"
             exec run_as "$@"
         ;;
