@@ -53,14 +53,17 @@ setup_devices(){
 }
 
 setup_user() {
+    LD_PRELOAD="/usr/lib/x86_64-linux-gnu/libnss_wrapper.so"
     NSS_WRAPPER_PASSWD="/tmp/passwd"
     NSS_WRAPPER_GROUP="/tmp/group"
-    LD_PRELOAD="/usr/lib/x86_64-linux-gnu/libnss_wrapper.so"
-    printf 'root:x:0:0:root:/root:/bin/bash\n' > "${NSS_WRAPPER_PASSWD}"
-    printf 'www-data:x:%s:%s:www-data:/var/www:/usr/sbin/nologin\n' "${PUID}" "${PGID}" >> "${NSS_WRAPPER_PASSWD}"
-    
-    printf 'root:x:0:\n' > "${NSS_WRAPPER_GROUP}"
-    printf 'www-data:x:%s:\n' "${PGID}" >> "${NSS_WRAPPER_GROUP}"
+    if [ ! -f "${NSS_WRAPPER_PASSWD}" ]; then
+        printf 'root:x:0:0:root:/root:/bin/bash\n' > "${NSS_WRAPPER_PASSWD}"
+        printf 'www-data:x:%s:%s:www-data:/var/www:/usr/sbin/nologin\n' "${PUID}" "${PGID}" >> "${NSS_WRAPPER_PASSWD}"
+    fi
+    if [ ! -f "${NSS_WRAPPER_GROUP}" ]; then
+        printf 'root:x:0:\n' > "${NSS_WRAPPER_GROUP}"
+        printf 'www-data:x:%s:\n' "${PGID}" >> "${NSS_WRAPPER_GROUP}"
+    fi
     export LD_PRELOAD NSS_WRAPPER_PASSWD NSS_WRAPPER_GROUP
 }
 
@@ -120,11 +123,11 @@ nextcloud_entrypoint(){
 }
 
 if [ "$EUID" -eq "0" ]; then
+    setup_user
     case "$(basename "$1")" in
         apache2-foreground)
             check_env
             setup_devices
-            setup_user
             fix_permission
             nextcloud_entrypoint
             setup_notifypush
@@ -134,15 +137,12 @@ if [ "$EUID" -eq "0" ]; then
         supercronic)
             check_env
             setup_devices
-            setup_user
             wait_nextcloud
             echo Starting: "$@"
             exec run_as "$@"
         ;;
         notify_push)
             wait_nextcloud
-            setup_devices
-            setup_user
             echo Starting: "$@"
             exec run_as "$@"
         ;;
