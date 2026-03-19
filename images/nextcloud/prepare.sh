@@ -123,11 +123,11 @@ nextcloud_entrypoint(){
 }
 
 if [ "$EUID" -eq "0" ]; then
-    setup_user
     case "$(basename "$1")" in
         apache2-foreground)
             check_env
             setup_devices
+            setup_user
             fix_permission
             nextcloud_entrypoint
             setup_notifypush
@@ -137,6 +137,7 @@ if [ "$EUID" -eq "0" ]; then
         supercronic)
             check_env
             setup_devices
+            setup_user
             wait_nextcloud
             echo Starting: "$@"
             exec run_as "$@"
