@@ -2,7 +2,7 @@
 set -eu -o pipefail
 
 ENV_OK=1
-_check_env () {
+_check_env() {
     KEY="$1"
     VALUE="$(printenv $1)"
     if [ -z "${VALUE}" ]; then
@@ -37,7 +37,7 @@ check_env() {
     fi
 }
 
-setup_devices(){
+setup_devices() {
     # Make VA-API accessible
     if [ -c "/dev/dri/renderD128" ]; then
         chgrp "${PGID}" /dev/dri/renderD128
@@ -67,7 +67,7 @@ setup_user() {
     export LD_PRELOAD NSS_WRAPPER_PASSWD NSS_WRAPPER_GROUP
 }
 
-fix_permission(){
+fix_permission() {
     for dir in /var/www/html /var/www/cache; do
         echo "Checking permissions for ${dir}..."
         if [ "$(stat -c '%u:%g' "${dir}")" != "${PUID}:${PGID}" ]; then
@@ -79,7 +79,7 @@ fix_permission(){
     done
 }
 
-setup_notifypush(){
+setup_notifypush() {
     # Install notify_push
     rsync -a --delete --chown www-data:www-data \
         /usr/src/nextcloud/apps/notify_push/ \
@@ -89,20 +89,19 @@ setup_notifypush(){
     # Config manually in case reverse proxy not ready
     if [ "$(occ config:app:get notify_push base_endpoint)" != "${OVERWRITECLIURL}/push" ]; then
         # Random value [0, 2**30-1]
-        occ config:app:set notify_push cookie --value "$(($RANDOM*2**15+$RANDOM))"
+        occ config:app:set notify_push cookie --value "$((RANDOM * 2 ** 15 + RANDOM))"
         occ config:app:set notify_push base_endpoint --value "${OVERWRITECLIURL}/push"
     fi
 }
 
-wait_nextcloud(){
+wait_nextcloud() {
     trap 'exit 143;' SIGTERM
 
     local max_retries=10
     local try=0
-    until  [ "$try" -gt "$max_retries" ] || nc -z "${NEXTCLOUD_HOST}" 80
-    do
+    until [ "$try" -gt "$max_retries" ] || nc -z "${NEXTCLOUD_HOST}" 80; do
         echo "waiting for nextcloud ready..."
-        try=$((try+1))
+        try=$((try + 1))
         sleep 10s &
         wait $!
     done
@@ -112,7 +111,7 @@ wait_nextcloud(){
     fi
 }
 
-nextcloud_entrypoint(){
+nextcloud_entrypoint() {
     # Run /entrypoint.sh logic (install/upgrade/...)
     export NEXTCLOUD_UPDATE=1
     export NEXTCLOUD_INIT_HTACCESS=1
@@ -133,7 +132,7 @@ if [ "$EUID" -eq "0" ]; then
             setup_notifypush
             echo Starting: "$@"
             exec run_as "$@"
-        ;;
+            ;;
         supercronic)
             check_env
             setup_devices
@@ -141,12 +140,12 @@ if [ "$EUID" -eq "0" ]; then
             wait_nextcloud
             echo Starting: "$@"
             exec run_as "$@"
-        ;;
+            ;;
         notify_push)
             wait_nextcloud
             echo Starting: "$@"
             exec run_as "$@"
-        ;;
+            ;;
     esac
 fi
 
