@@ -60,7 +60,7 @@ RUN set -eux; \
     ln -s /usr/src/nextcloud/apps/notify_push/bin/$(arch)/notify_push /usr/local/bin/notify_push;
 
 COPY --link custom.config.php /usr/src/nextcloud/config/
-COPY --link setup_user.sh /etc/profile.d/
+COPY --link .bashrc /root/
 COPY --link --chmod=755 occ run_as /usr/local/bin/
 COPY --link --chmod=755 prepare.sh /
 
