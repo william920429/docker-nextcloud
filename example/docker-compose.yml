@@ -16,7 +16,7 @@ services:
       - POSTGRES_PASSWORD
     healthcheck:
       test: ["CMD", "pg_isready", "-d", "${POSTGRES_DB}", "-U", "${POSTGRES_USER}"]
-      interval: 10s
+      start_period: 30s
       timeout: 3s
 
   valkey:
@@ -28,7 +28,7 @@ services:
       - TZ
     healthcheck:
       test: ["CMD", "valkey-cli", "PING"]
-      interval: 10s
+      start_period: 30s
       timeout: 3s
 
   imaginary:
@@ -38,7 +38,7 @@ services:
     entrypoint: imaginary -p 9000 -return-size -max-allowed-resolution 222.2
     healthcheck:
       test: ["CMD", "nc", "-z", "127.0.0.1", "9000"]
-      interval: 10s
+      start_period: 30s
       timeout: 3s
 
   app:
@@ -60,7 +60,7 @@ services:
       - 21800:80
     healthcheck:
       test: ["CMD", "nc", "-z", "127.0.0.1", "80"]
-      interval: 10s
+      start_period: 30s
       timeout: 3s
     depends_on:
       - postgres
@@ -81,7 +81,7 @@ services:
     env_file: .env
     healthcheck:
       test: ["CMD", "/healthcheck-cron.sh"]
-      interval: 10s
+      start_period: 5m
       timeout: 3s
     volumes_from:
       - app
@@ -102,7 +102,7 @@ services:
       - NEXTCLOUD_HOST
     healthcheck:
       test: ["CMD", "nc", "-z", "127.0.0.1", "7867"]
-      interval: 10s
+      start_period: 30s
       timeout: 3s
     volumes_from:
       - app:ro
