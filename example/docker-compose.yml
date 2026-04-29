@@ -72,13 +72,17 @@ services:
     stop_signal: SIGTERM
     restart: unless-stopped
     tty: true
-    command: supercronic -quiet /var/spool/cron/crontabs/www-data
+    command: supercronic -quiet /crontab
     # Uncomment to enable dri device (VA-API)
     # devices:
     #   - /dev/dri:/dev/dri
     tmpfs:
       - /tmp:exec
     env_file: .env
+    healthcheck:
+      test: ["CMD", "/healthcheck-cron.sh"]
+      interval: 10s
+      timeout: 3s
     volumes_from:
       - app
 

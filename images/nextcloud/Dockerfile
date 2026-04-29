@@ -1,6 +1,6 @@
 ARG NEXTCLOUD_VERSION="32"
 ARG NOTIFYPUSH_VERSION="1.3.1"
-ARG SUPERCRONIC_VERSION="0.2.44"
+ARG SUPERCRONIC_VERSION="0.2.45"
 
 FROM nextcloud:${NEXTCLOUD_VERSION}-apache
 # Install dependencies
@@ -60,9 +60,10 @@ RUN set -eux; \
     ln -s /usr/src/nextcloud/apps/notify_push/bin/$(arch)/notify_push /usr/local/bin/notify_push;
 
 COPY --link custom.config.php /usr/src/nextcloud/config/
+COPY --link crontab /
 COPY --link .bashrc /root/
 COPY --link --chmod=755 occ run_as /usr/local/bin/
-COPY --link --chmod=755 prepare.sh /
+COPY --link --chmod=755 prepare.sh healthcheck-cron.sh /
 
 ENV APACHE_PID_FILE="/tmp/apache2.pid" \
     XDG_CACHE_HOME="/var/www/cache"
