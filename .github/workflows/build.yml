@@ -20,9 +20,9 @@ jobs:
       matrix:
         include:
           - IMAGE_NAME: nextcloud
-            IMAGE_VERSION: "32"
-          - IMAGE_NAME: elasticsearch
-            IMAGE_VERSION: "9.3.0"
+            IMAGE_VERSION: "33"
+          # - IMAGE_NAME: elasticsearch
+          #   IMAGE_VERSION: "9.3.0"
     runs-on: ubuntu-latest
     permissions:
       contents: read
