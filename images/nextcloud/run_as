@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -eu -o pipefail
 
+if [ "${EUID}" -ne "0" ]; then
+	exec "$@"
+fi
+
 exec setpriv --reuid "${PUID}" --regid "${PGID}" \
     --clear-groups --no-new-privs -- \
     "$@"

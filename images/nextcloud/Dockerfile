@@ -2,16 +2,18 @@ ARG NEXTCLOUD_VERSION="33"
 ARG NOTIFYPUSH_VERSION="1.3.1"
 ARG SUPERCRONIC_VERSION="0.2.45"
 
-FROM nextcloud:${NEXTCLOUD_VERSION}-apache
+FROM nextcloud:${NEXTCLOUD_VERSION}-fpm
 # Install dependencies
 # intel-media-va-driver-non-free: for intel gpu
 # mesa-va-drivers: for amd gpu and nouveau
 # ffmpeg: for video preview and memories video stream
 # iproute2: for serverinfo app
 # netcat-openbsd: for healthcheck and prepare.sh
+# nginx: for web
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
     set -eux; \
+    export DEBIAN_FRONTEND=noninteractive; \
     rm -f /etc/apt/apt.conf.d/docker-clean; \
     echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache; \
     . /etc/os-release; \
@@ -24,7 +26,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
         ffmpeg \
         iproute2 \
         netcat-openbsd \
-        libnss-wrapper \
+        nginx \
     ; \
     apt autoclean;
 
@@ -42,32 +44,28 @@ ADD --link --chmod=755 \
     https://github.com/aptible/supercronic/releases/download/v${SUPERCRONIC_VERSION}/supercronic-linux-amd64 \
     /usr/local/bin/supercronic
 
-# Setup apache, dir and symlink
+# Setup dir and symlink
 RUN set -eux; \
-    sed -e '$a ServerName localhost' \
-        -i /etc/apache2/apache2.conf; \
-    a2enmod proxy proxy_http proxy_wstunnel; \
-    sed -e '/<\/VirtualHost>/i \\tProxyPass /push/ws ws://${NOTIFYPUSH_HOST}:7867/ws' \
-        -e '/<\/VirtualHost>/i \\tProxyPass /push/ http://${NOTIFYPUSH_HOST}:7867/' \
-        -e '/<\/VirtualHost>/i \\tProxyPassReverse /push/ http://${NOTIFYPUSH_HOST}:7867/' \
-        -i /etc/apache2/sites-available/000-default.conf; \
     chown root:root /var/www; \
     chmod 755 /var/www; \
     rmdir /var/www/data; \
     mkdir -p /var/www/cache; \
     chown www-data:www-data /var/www/html /var/www/cache; \
     chmod 700 /var/www/html /var/www/cache; \
-    ln -s /usr/src/nextcloud/apps/notify_push/bin/$(arch)/notify_push /usr/local/bin/notify_push;
+    ln -s /usr/src/nextcloud/apps/notify_push/bin/x86_64/notify_push /usr/local/bin/notify_push; \
+    ln -sf /dev/stdout /var/log/nginx/access.log; \
+    ln -sf /dev/stderr /var/log/nginx/error.log;
 
 COPY --link custom.config.php /usr/src/nextcloud/config/
+COPY --link nginx.conf /etc/nginx/
 COPY --link crontab /
-COPY --link .bashrc /root/
 COPY --link --chmod=755 occ run_as /usr/local/bin/
 COPY --link --chmod=755 prepare.sh healthcheck-cron.sh /
 
 ENV APACHE_PID_FILE="/tmp/apache2.pid" \
     XDG_CACHE_HOME="/var/www/cache"
 
-STOPSIGNAL SIGWINCH
+EXPOSE 80
+STOPSIGNAL SIGTERM
 ENTRYPOINT ["/prepare.sh"]
-CMD ["apache2-foreground"]
+CMD ["php-fpm"]

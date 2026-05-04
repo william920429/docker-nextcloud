@@ -35,6 +35,7 @@ services:
     image: ghcr.io/nextcloud-releases/aio-imaginary:latest
     container_name: nextcloud-imaginary
     restart: unless-stopped
+    user: "${PUID}:${PGID}"
     entrypoint: imaginary -p 9000 -return-size -max-allowed-resolution 222.2
     healthcheck:
       test: ["CMD", "nc", "-z", "127.0.0.1", "9000"]
@@ -45,7 +46,6 @@ services:
     image: ghcr.io/william920429/nextcloud:latest
     container_name: nextcloud-app
     restart: unless-stopped
-    tty: true
     # Uncomment to enable dri device (VA-API)
     # devices:
     #   - /dev/dri:/dev/dri
@@ -56,8 +56,6 @@ services:
     tmpfs:
       - /tmp:exec
     env_file: .env
-    ports:
-      - 21800:80
     healthcheck:
       test: ["CMD", "nc", "-z", "127.0.0.1", "80"]
       start_period: 30s
@@ -65,13 +63,11 @@ services:
     depends_on:
       - postgres
       - valkey
-  
+
   cron:
     image: ghcr.io/william920429/nextcloud:latest
     container_name: nextcloud-cron
-    stop_signal: SIGTERM
     restart: unless-stopped
-    tty: true
     command: supercronic -quiet /crontab
     # Uncomment to enable dri device (VA-API)
     # devices:
@@ -86,20 +82,36 @@ services:
     volumes_from:
       - app
 
+  web:
+    image: ghcr.io/william920429/nextcloud:latest
+    container_name: nextcloud-web
+    restart: unless-stopped
+    command: nginx -g 'daemon off;'
+    environment:
+      - PUID
+      - PGID
+      - NEXTCLOUD_HOST
+    healthcheck:
+      test: ["CMD", "nc", "-z", "127.0.0.1", "80"]
+      start_period: 30s
+      timeout: 3s
+    ports:
+      - 21800:80
+    volumes_from:
+      - app:ro
+
   notifypush:
     image: ghcr.io/william920429/nextcloud:latest
     container_name: nextcloud-notifypush
-    stop_signal: SIGTERM
     restart: unless-stopped
+    user: "${PUID}:${PGID}"
     command: notify_push
     environment:
       - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}/${POSTGRES_DB}
       - DATABASE_PREFIX=oc_
       - REDIS_URL=redis://${REDIS_HOST}
-      - NEXTCLOUD_URL=http://${NEXTCLOUD_HOST}
-      - PUID
-      - PGID
-      - NEXTCLOUD_HOST
+      - NEXTCLOUD_URL=http://${NGINX_HOST}
+      - NGINX_HOST
     healthcheck:
       test: ["CMD", "nc", "-z", "127.0.0.1", "7867"]
       start_period: 30s

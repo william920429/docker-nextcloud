@@ -23,6 +23,7 @@ check_env() {
     _check_env NEXTCLOUD_ADMIN_USER
     _check_env NEXTCLOUD_ADMIN_PASSWORD
     _check_env NEXTCLOUD_HOST
+    _check_env NGINX_HOST
     _check_env POSTGRES_DB
     _check_env POSTGRES_USER
     _check_env POSTGRES_PASSWORD
@@ -46,42 +47,24 @@ setup_devices() {
     # Make TTY accessible
     if [ -c "/dev/stdout" ]; then
         chgrp "${PGID}" /dev/stdout
-    else
-        echo "error: should run with --tty (docker) or tty: true (docker compose)"
-        exit 1
     fi
 }
 
 setup_user() {
-    LD_PRELOAD="/usr/lib/x86_64-linux-gnu/libnss_wrapper.so"
-    NSS_WRAPPER_PASSWD="/tmp/passwd"
-    NSS_WRAPPER_GROUP="/tmp/group"
-    if [ ! -f "${NSS_WRAPPER_PASSWD}" ]; then
-        printf 'root:x:0:0:root:/root:/bin/bash\n' > "${NSS_WRAPPER_PASSWD}"
-        printf 'www-data:x:%s:%s:www-data:/var/www:/usr/sbin/nologin\n' "${PUID}" "${PGID}" >> "${NSS_WRAPPER_PASSWD}"
-    fi
-    if [ ! -f "${NSS_WRAPPER_GROUP}" ]; then
-        printf 'root:x:0:\n' > "${NSS_WRAPPER_GROUP}"
-        printf 'www-data:x:%s:\n' "${PGID}" >> "${NSS_WRAPPER_GROUP}"
-    fi
-    export LD_PRELOAD NSS_WRAPPER_PASSWD NSS_WRAPPER_GROUP
+    sed "s@^www-data:.*@www-data:x:${PUID}:${PGID}:www-data:/var/www:/usr/sbin/nologin@" \
+        -i /etc/passwd
+    
+    sed "s@^www-data:.*@www-data:x:${PGID}:@" \
+        -i /etc/group
 }
 
 fix_permission() {
-    for dir in /var/www/html /var/www/cache; do
-        echo "Checking permissions for ${dir}..."
-        if [ "$(stat -c '%u:%g' "${dir}")" != "${PUID}:${PGID}" ]; then
-            find "${dir}" -xdev \
-                \( ! -uid "${PUID}" -or ! -gid "${PGID}" \) \
-                -exec chown --no-dereference "${PUID}:${PGID}" '{}' + \
-                -print
-        fi
-    done
+    chown "${PUID}:${PGID}" /var/www/html /var/www/html/data /var/www/cache
 }
 
 setup_notifypush() {
     # Install notify_push
-    rsync -a --delete --chown www-data:www-data \
+    rsync -a --delete --chown "${PUID}:${PGID}" \
         /usr/src/nextcloud/apps/notify_push/ \
         /var/www/html/apps/notify_push/
     occ app:enable notify_push
@@ -94,19 +77,20 @@ setup_notifypush() {
     fi
 }
 
-wait_nextcloud() {
-    trap 'exit 143;' SIGTERM
+# wait_service app 9000
+wait_service() {
+    trap 'exit 143;' TERM
 
-    local max_retries=10
+    local max_retries=3
     local try=0
-    until [ "$try" -gt "$max_retries" ] || nc -z "${NEXTCLOUD_HOST}" 80; do
-        echo "waiting for nextcloud ready..."
+    until [ "$try" -gt "$max_retries" ] || nc -z "$1" "$2"; do
+        echo "waiting for nextcloud $1:$2 ready..."
         try=$((try + 1))
-        sleep 10s &
+        sleep 5s &
         wait $!
     done
     if [ "$try" -gt "$max_retries" ]; then
-        echo "nextcloud seems not running, exiting..."
+        echo "nextcloud $1:$2 seems not running, exiting..."
         exit 1
     fi
 }
@@ -114,16 +98,16 @@ wait_nextcloud() {
 nextcloud_entrypoint() {
     # Run /entrypoint.sh logic (install/upgrade/...)
     export NEXTCLOUD_UPDATE=1
-    export NEXTCLOUD_INIT_HTACCESS=1
+    # export NEXTCLOUD_INIT_HTACCESS=1
     touch /usr/local/etc/php/conf.d/redis-session.ini
     chmod 666 /usr/local/etc/php/conf.d/redis-session.ini
     run_as /entrypoint.sh true
     chmod 644 /usr/local/etc/php/conf.d/redis-session.ini
 }
 
-if [ "$EUID" -eq "0" ]; then
+if [ "${EUID}" -eq "0" ]; then
     case "$(basename "$1")" in
-        apache2-foreground)
+        apache2-foreground|php-fpm)
             check_env
             setup_devices
             setup_user
@@ -131,18 +115,24 @@ if [ "$EUID" -eq "0" ]; then
             nextcloud_entrypoint
             setup_notifypush
             echo Starting: "$@"
-            exec run_as "$@"
+            exec "$@"
             ;;
         supercronic)
             check_env
             setup_devices
             setup_user
-            wait_nextcloud
+            wait_service "${NEXTCLOUD_HOST}" 9000
             echo Starting: "$@"
             exec run_as "$@"
             ;;
+        nginx)
+            setup_user
+            wait_service "${NEXTCLOUD_HOST}" 9000
+            echo Starting: "$@"
+            exec "$@"
+            ;;
         notify_push)
-            wait_nextcloud
+            wait_service "${NGINX_HOST}" 80
             echo Starting: "$@"
             exec run_as "$@"
             ;;
