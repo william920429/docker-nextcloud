@@ -104,7 +104,6 @@ services:
     image: ghcr.io/william920429/nextcloud:latest
     container_name: nextcloud-notifypush
     restart: unless-stopped
-    user: "${PUID}:${PGID}"
     command: notify_push
     environment:
       - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}/${POSTGRES_DB}
@@ -112,6 +111,8 @@ services:
       - REDIS_URL=redis://${REDIS_HOST}
       - NEXTCLOUD_URL=http://${NGINX_HOST}
       - NGINX_HOST
+      - PUID
+      - PGID
     healthcheck:
       test: ["CMD", "nc", "-z", "127.0.0.1", "7867"]
       start_period: 30s
