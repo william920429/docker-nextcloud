@@ -57,7 +57,7 @@ services:
       - /tmp:exec
     env_file: .env
     healthcheck:
-      test: ["CMD", "nc", "-z", "127.0.0.1", "80"]
+      test: ["CMD", "nc", "-z", "127.0.0.1", "9000"]
       start_period: 30s
       timeout: 3s
     depends_on:
