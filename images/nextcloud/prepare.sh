@@ -59,7 +59,10 @@ setup_user() {
 }
 
 fix_permission() {
-    chown "${PUID}:${PGID}" /var/www/html /var/www/html/data /var/www/cache
+    chown "${PUID}:${PGID}" /var/www/html /var/www/cache
+    if [ -d /var/www/html/data ]; then
+        chown "${PUID}:${PGID}" /var/www/html/data
+    fi
 }
 
 setup_notifypush() {
