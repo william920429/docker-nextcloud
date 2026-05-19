@@ -10,11 +10,12 @@ FROM nextcloud:${NEXTCLOUD_VERSION}-fpm
 # iproute2: for serverinfo app
 # netcat-openbsd: for healthcheck and prepare.sh
 # nginx: for web
+# jq, inotify-tools: for notify_push
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
     set -eux; \
     export DEBIAN_FRONTEND=noninteractive; \
-    rm -f /etc/apt/apt.conf.d/docker-clean; \
+    mv /etc/apt/apt.conf.d/docker-clean /tmp/docker-clean; \
     echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache; \
     . /etc/os-release; \
     echo "deb http://ftp.debian.org/debian ${VERSION_CODENAME} non-free non-free-firmware" >> \
@@ -27,8 +28,12 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
         iproute2 \
         netcat-openbsd \
         nginx \
+        jq \
+        inotify-tools \
     ; \
-    apt autoclean;
+    apt autoclean; \
+    rm /etc/apt/apt.conf.d/keep-cache; \
+    mv /tmp/docker-clean /etc/apt/apt.conf.d/docker-clean;
 
 # Install notify_push
 # Latest releases available at https://github.com/nextcloud-releases/notify_push/releases
@@ -49,6 +54,7 @@ RUN set -eux; \
     chown root:root /var/www; \
     chmod 755 /var/www; \
     rmdir /var/www/data; \
+    rm /var/www/html/index.nginx-debian.html; \
     mkdir -p /var/www/cache; \
     chown www-data:www-data /var/www/html /var/www/cache; \
     chmod 700 /var/www/html /var/www/cache; \
