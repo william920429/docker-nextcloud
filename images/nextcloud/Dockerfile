@@ -1,6 +1,6 @@
-ARG NEXTCLOUD_VERSION="34"
-ARG NOTIFYPUSH_VERSION="1.3.3"
-ARG SUPERCRONIC_VERSION="0.2.47"
+ARG NEXTCLOUD_VERSION="34.0.3"
+ARG NOTIFYPUSH_VERSION="1.4.0"
+ARG SUPERCRONIC_VERSION="0.2.49"
 
 FROM nextcloud:${NEXTCLOUD_VERSION}-fpm
 # Install dependencies
@@ -38,6 +38,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 # Install notify_push
 # Latest releases available at https://github.com/nextcloud-releases/notify_push/releases
 ARG NOTIFYPUSH_VERSION
+# dockerfile-utils: ignore
 ADD --link --unpack=true \
     https://github.com/nextcloud-releases/notify_push/releases/download/v${NOTIFYPUSH_VERSION}/notify_push-v${NOTIFYPUSH_VERSION}.tar.gz \
     /usr/src/nextcloud/apps/
