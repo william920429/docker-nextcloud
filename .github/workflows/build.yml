@@ -7,8 +7,8 @@ on:
     paths:
       - "images/**"
       - ".github/workflows/build.yml"
-  schedule:
-    - cron: "18 18 * * 2,6"
+  # schedule:
+  #   - cron: "18 18 * * 2,6"
   workflow_dispatch:
 
 env:
