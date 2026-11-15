@@ -6,9 +6,9 @@
  - use [supercronic](https://github.com/aptible/supercronic) as cron
 
 ## Versions
- - nextcloud: 32
- - notify_push: 1.3.1
- - supercronic: 0.2.44
+ - nextcloud: 35.0.3
+ - notify_push: 1.4.2
+ - supercronic: 0.2.51
 
 ## How to install
 ### Copy example files
